@@ -1,0 +1,102 @@
+You are continuing my SahatGhar / AsaanCare healthcare platform project.
+
+IMPORTANT:
+You may ask questions if there is real doubt or a blocking decision.
+But do not ask obvious questions where the correct next step is already clear.
+Do not stop after small progress.
+Do not start the patient app yet.
+
+Current project priority:
+1. Admin website must be stable and connected to real backend/database.
+2. Backend/API/database must be real PostgreSQL, not mock arrays.
+3. Auth + RBAC must be secure.
+4. Doctor verification workflow must be completed.
+5. Doctor app must be repaired and connected to real backend.
+6. Patient app comes later only after I approve.
+
+Current known progress:
+- Project migrated to Replit.
+- Dependencies installed.
+- bcrypt native build issue was fixed by replacing bcrypt with bcryptjs.
+- PostgreSQL DATABASE_URL exists in Replit Secrets.
+- API server and admin frontend started.
+- Login page loaded.
+- Seed reportedly created admins, doctors, patients, appointments, payments, refunds, payouts, tickets, reviews, notifications.
+- Admin auth reportedly uses JWT/httpOnly cookie.
+- Doctor app auth reportedly uses JWT in AsyncStorage.
+- TypeScript reportedly fixed.
+- But doctor verification workflow and full doctor app real flows are still not confirmed complete.
+
+Your task now is to verify, document, and complete the remaining system properly.
+
+---
+
+# STRICT WORKING RULES
+
+1. Do not start patient app.
+2. Do not replace the whole stack randomly.
+3. Do not migrate Vite to Next.js unless I explicitly approve.
+4. Do not migrate Express to NestJS unless I explicitly approve.
+5. Do not replace Drizzle with Prisma unless I explicitly approve.
+6. Keep the current working stack stable.
+7. Do not leave mock data in backend routes.
+8. Do not say “complete” unless tested.
+9. If something is still partial, say partial.
+10. If there is a real blocker or important choice, ask me a question.
+11. If there is no blocker, continue with the safest production-grade choice.
+12. After each phase, briefly report what changed and continue to the next required phase.
+13. At the end, ask me what to do next.
+
+---
+
+# PHASE 1 — VERIFY CURRENT STATE FIRST
+
+Before adding new features, inspect the current project and create a short verification report.
+
+Check:
+
+- Root package.json
+- pnpm-workspace.yaml
+- api-server package.json
+- admin frontend package.json
+- doctor app package.json
+- .replit workflows
+- env variable usage
+- DB connection file
+- auth files
+- route files
+- Drizzle schema files
+- seed script
+- admin frontend AuthContext
+- doctor app AuthContext
+
+Report:
+
+1. Actual stack used
+2. Which apps run
+3. Which packages are installed
+4. Whether bcrypt is fully removed
+5. Whether bcryptjs is correctly used
+6. Whether API server starts
+7. Whether admin frontend starts
+8. Whether doctor app starts or not
+9. Whether database seed works
+10. Whether typecheck/build pass
+
+---
+
+# PHASE 2 — FIX BCRYPT/BCRYPTJS MIGRATION PROPERLY
+
+The project had Replit/Linux bcrypt native build problems.
+
+bcrypt should be replaced with bcryptjs unless there is a strong reason not to.
+
+Do this:
+
+1. Search the whole repo for bcrypt imports:
+
+```bash
+grep -R "from 'bcrypt'" .
+grep -R 'from "bcrypt"' .
+grep -R "require('bcrypt')" .
+grep -R 'require("bcrypt")' .

@@ -1,0 +1,95 @@
+You successfully migrated the project to Replit and fixed the bcrypt native build issue by switching from bcrypt to bcryptjs.
+
+Now I need you to create a complete developer handoff + project memory documentation so any next developer or AI agent can understand, run, repair, and continue the project without confusion.
+
+Do NOT start patient app.
+Do NOT add random new features.
+First document everything clearly, then verify the project still runs.
+
+# TASK 1 — CREATE PROJECT MEMORY DOCUMENTS
+
+Create these documentation files:
+
+1. PROJECT_MEMORY.md
+2. SETUP_GUIDE.md
+3. ENVIRONMENT_VARIABLES.md
+4. ARCHITECTURE.md
+5. DATABASE_GUIDE.md
+6. AUTH_GUIDE.md
+7. API_ROUTES.md
+8. FRONTEND_GUIDE.md
+9. DOCTOR_APP_GUIDE.md
+10. KNOWN_ISSUES.md
+11. NEXT_STEPS.md
+12. CHANGELOG.md
+
+Each file must be clear, practical, and useful for a future developer.
+
+---
+
+# FILE 1 — PROJECT_MEMORY.md
+
+Document:
+
+- Project name: SahatGhar / AsaanCare healthcare platform
+- Purpose: Pakistan healthcare marketplace/admin system
+- Current priority:
+  1. Admin website repair
+  2. Backend/database real integration
+  3. Doctor app repair
+  4. Patient app later
+- Current stack actually used:
+  - Admin frontend
+  - API server
+  - Doctor app
+  - Shared packages
+  - Database
+  - ORM
+  - Package manager
+- What was recently fixed:
+  - dependencies installed
+  - Replit workflows started
+  - bcrypt replaced with bcryptjs
+  - API server running
+  - frontend running
+  - login page visible
+- What must NOT be done yet:
+  - do not start patient app
+  - do not migrate stack randomly
+  - do not replace working modules without reason
+- Main business modules:
+  - doctors
+  - doctor verification
+  - appointments
+  - patients
+  - payments
+  - refunds
+  - payouts
+  - clinics
+  - support tickets
+  - reviews
+  - notifications
+  - audit logs
+  - admin users
+  - doctor app
+
+---
+
+# FILE 2 — SETUP_GUIDE.md
+
+Write exact setup instructions for Replit and local development.
+
+Include:
+
+## Requirements
+
+- Node.js version used
+- pnpm version
+- PostgreSQL required
+- Replit environment
+- Package manager must be pnpm
+
+## Install
+
+```bash
+pnpm install

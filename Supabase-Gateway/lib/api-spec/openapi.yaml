@@ -1,0 +1,1507 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: SahatGhar Telemedicine Admin Panel API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: dashboard
+    description: Dashboard statistics
+  - name: doctors
+    description: Doctor management
+  - name: patients
+    description: Patient management
+  - name: appointments
+    description: Appointment management
+  - name: payments
+    description: Payment management
+  - name: subscriptions
+    description: Subscription management
+  - name: support
+    description: Support tickets
+  - name: audit
+    description: Audit logs
+  - name: admin-users
+    description: Admin user management
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard KPI stats
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/activity:
+    get:
+      operationId: getDashboardActivity
+      tags: [dashboard]
+      summary: Get recent activity feed
+      responses:
+        "200":
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+  /dashboard/revenue-trend:
+    get:
+      operationId: getRevenueTrend
+      tags: [dashboard]
+      summary: Get revenue trend data for the last 30 days
+      responses:
+        "200":
+          description: Revenue trend
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RevenueTrendItem"
+
+  /dashboard/verification-queue:
+    get:
+      operationId: getVerificationQueue
+      tags: [dashboard]
+      summary: Get pending doctor verification queue
+      responses:
+        "200":
+          description: Verification queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DoctorSummary"
+
+  /doctors:
+    get:
+      operationId: listDoctors
+      tags: [doctors]
+      summary: List all doctors with filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: specialty
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of doctors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DoctorListResponse"
+
+    post:
+      operationId: createDoctor
+      tags: [doctors]
+      summary: Create a new doctor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DoctorInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+
+  /doctors/{id}:
+    get:
+      operationId: getDoctor
+      tags: [doctors]
+      summary: Get a doctor by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Doctor detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+
+    patch:
+      operationId: updateDoctor
+      tags: [doctors]
+      summary: Update a doctor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DoctorUpdate"
+      responses:
+        "200":
+          description: Updated doctor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+
+  /doctors/{id}/status:
+    patch:
+      operationId: updateDoctorStatus
+      tags: [doctors]
+      summary: Approve, reject, or suspend a doctor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+
+  /doctors/stats:
+    get:
+      operationId: getDoctorStats
+      tags: [doctors]
+      summary: Get aggregated doctor statistics
+      responses:
+        "200":
+          description: Doctor stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DoctorStats"
+
+  /patients:
+    get:
+      operationId: listPatients
+      tags: [patients]
+      summary: List all patients
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of patients
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientListResponse"
+
+  /patients/{id}:
+    get:
+      operationId: getPatient
+      tags: [patients]
+      summary: Get patient profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Patient detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+
+    patch:
+      operationId: updatePatient
+      tags: [patients]
+      summary: Update patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientUpdate"
+      responses:
+        "200":
+          description: Updated patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+
+  /patients/{id}/block:
+    patch:
+      operationId: togglePatientBlock
+      tags: [patients]
+      summary: Block or unblock a patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockAction"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+
+  /appointments:
+    get:
+      operationId: listAppointments
+      tags: [appointments]
+      summary: List all appointments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: doctor_id
+          in: query
+          schema:
+            type: string
+        - name: patient_id
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+        - name: date_to
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentListResponse"
+
+  /appointments/{id}:
+    get:
+      operationId: getAppointment
+      tags: [appointments]
+      summary: Get appointment detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Appointment detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+
+    patch:
+      operationId: updateAppointment
+      tags: [appointments]
+      summary: Update an appointment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentUpdate"
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+
+  /appointments/stats:
+    get:
+      operationId: getAppointmentStats
+      tags: [appointments]
+      summary: Appointment completion analytics
+      responses:
+        "200":
+          description: Appointment stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentStats"
+
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List all transactions
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: gateway
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+        - name: date_to
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentListResponse"
+
+  /payments/{id}:
+    get:
+      operationId: getPayment
+      tags: [payments]
+      summary: Get payment detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payment detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/stats:
+    get:
+      operationId: getPaymentStats
+      tags: [payments]
+      summary: Payment summary and reconciliation stats
+      responses:
+        "200":
+          description: Payment stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentStats"
+
+  /payments/{id}/refund:
+    post:
+      operationId: initiateRefund
+      tags: [payments]
+      summary: Initiate a refund for a payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefundInput"
+      responses:
+        "200":
+          description: Refund initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /subscriptions:
+    get:
+      operationId: listSubscriptions
+      tags: [subscriptions]
+      summary: List all subscriptions
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: plan
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionListResponse"
+
+  /subscriptions/plans:
+    get:
+      operationId: listPlans
+      tags: [subscriptions]
+      summary: List all subscription plans
+      responses:
+        "200":
+          description: Plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+
+  /subscriptions/stats:
+    get:
+      operationId: getSubscriptionStats
+      tags: [subscriptions]
+      summary: Get subscription MRR, churn, and analytics
+      responses:
+        "200":
+          description: Subscription stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionStats"
+
+  /support/tickets:
+    get:
+      operationId: listSupportTickets
+      tags: [support]
+      summary: List all support tickets
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: priority
+          in: query
+          schema:
+            type: string
+        - name: user_type
+          in: query
+          schema:
+            type: string
+        - name: assigned_to
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tickets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketListResponse"
+
+  /support/tickets/{id}:
+    get:
+      operationId: getSupportTicket
+      tags: [support]
+      summary: Get a support ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ticket detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportTicket"
+
+    patch:
+      operationId: updateSupportTicket
+      tags: [support]
+      summary: Update a support ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketUpdate"
+      responses:
+        "200":
+          description: Updated ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportTicket"
+
+  /support/stats:
+    get:
+      operationId: getSupportStats
+      tags: [support]
+      summary: SLA and agent performance metrics
+      responses:
+        "200":
+          description: Support stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportStats"
+
+  /audit/logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: List audit event logs
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+        - name: action_type
+          in: query
+          schema:
+            type: string
+        - name: entity_type
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+        - name: date_to
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogListResponse"
+
+  /audit/stats:
+    get:
+      operationId: getAuditStats
+      tags: [audit]
+      summary: Security summary stats
+      responses:
+        "200":
+          description: Audit stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditStats"
+
+  /admin-users:
+    get:
+      operationId: listAdminUsers
+      tags: [admin-users]
+      summary: List admin accounts
+      responses:
+        "200":
+          description: Admin users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+
+    post:
+      operationId: createAdminUser
+      tags: [admin-users]
+      summary: Create an admin account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /admin-users/{id}/status:
+    patch:
+      operationId: updateAdminUserStatus
+      tags: [admin-users]
+      summary: Suspend or activate an admin user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusUpdate"
+      responses:
+        "200":
+          description: Updated admin user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    DashboardStats:
+      type: object
+      required: [total_users, verified_doctors, todays_appointments, monthly_revenue, open_tickets, pending_approvals]
+      properties:
+        total_users:
+          type: integer
+        total_users_change:
+          type: number
+        verified_doctors:
+          type: integer
+        verified_doctors_change:
+          type: number
+        todays_appointments:
+          type: integer
+        todays_appointments_change:
+          type: number
+        monthly_revenue:
+          type: number
+        monthly_revenue_change:
+          type: number
+        open_tickets:
+          type: integer
+        pending_approvals:
+          type: integer
+        payment_reconciliation:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReconciliationItem"
+
+    ReconciliationItem:
+      type: object
+      required: [gateway, amount, change]
+      properties:
+        gateway:
+          type: string
+        amount:
+          type: number
+        change:
+          type: number
+
+    ActivityItem:
+      type: object
+      required: [id, user, action, timestamp]
+      properties:
+        id:
+          type: string
+        user:
+          type: string
+        action:
+          type: string
+        entity:
+          type: ["string", "null"]
+        timestamp:
+          type: string
+
+    RevenueTrendItem:
+      type: object
+      required: [date, revenue]
+      properties:
+        date:
+          type: string
+        revenue:
+          type: number
+
+    Doctor:
+      type: object
+      required: [id, name, specialty, city, pmdc_number, status, joined_date]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        specialty:
+          type: string
+        city:
+          type: string
+        pmdc_number:
+          type: string
+        status:
+          type: string
+        joined_date:
+          type: string
+        avatar_url:
+          type: ["string", "null"]
+        rating:
+          type: ["number", "null"]
+        appointments_completed:
+          type: ["integer", "null"]
+        no_shows:
+          type: ["integer", "null"]
+        avg_response_time:
+          type: ["string", "null"]
+        featured:
+          type: ["boolean", "null"]
+        fee:
+          type: ["number", "null"]
+
+    DoctorSummary:
+      type: object
+      required: [id, name, specialty, city, status]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        specialty:
+          type: string
+        city:
+          type: string
+        status:
+          type: string
+        avatar_url:
+          type: ["string", "null"]
+        joined_time_ago:
+          type: ["string", "null"]
+
+    DoctorListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Doctor"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    DoctorInput:
+      type: object
+      required: [name, specialty, city, pmdc_number]
+      properties:
+        name:
+          type: string
+        specialty:
+          type: string
+        city:
+          type: string
+        pmdc_number:
+          type: string
+        fee:
+          type: number
+
+    DoctorUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        specialty:
+          type: string
+        city:
+          type: string
+        fee:
+          type: number
+        featured:
+          type: boolean
+
+    DoctorStats:
+      type: object
+      required: [total, verified, pending, suspended]
+      properties:
+        total:
+          type: integer
+        verified:
+          type: integer
+        pending:
+          type: integer
+        suspended:
+          type: integer
+
+    Patient:
+      type: object
+      required: [id, name, phone, city, status, joined_date]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        city:
+          type: string
+        status:
+          type: string
+        joined_date:
+          type: string
+        avatar_url:
+          type: ["string", "null"]
+        total_bookings:
+          type: ["integer", "null"]
+        total_spent:
+          type: ["number", "null"]
+        upcoming_bookings:
+          type: ["integer", "null"]
+
+    PatientListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Patient"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    PatientUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        city:
+          type: string
+        status:
+          type: string
+
+    BlockAction:
+      type: object
+      required: [blocked, reason]
+      properties:
+        blocked:
+          type: boolean
+        reason:
+          type: string
+
+    Appointment:
+      type: object
+      required: [id, patient_name, doctor_name, date_time, type, city, status, amount]
+      properties:
+        id:
+          type: string
+        patient_name:
+          type: string
+        patient_age:
+          type: ["integer", "null"]
+        patient_gender:
+          type: ["string", "null"]
+        doctor_name:
+          type: string
+        doctor_specialty:
+          type: ["string", "null"]
+        date_time:
+          type: string
+        type:
+          type: string
+        city:
+          type: string
+        status:
+          type: string
+        amount:
+          type: number
+        payment_method:
+          type: ["string", "null"]
+        payment_status:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    AppointmentListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Appointment"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AppointmentUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        notes:
+          type: string
+
+    AppointmentStats:
+      type: object
+      required: [total, attended, no_show, cancelled, completion_rate]
+      properties:
+        total:
+          type: integer
+        attended:
+          type: integer
+        no_show:
+          type: integer
+        cancelled:
+          type: integer
+        completion_rate:
+          type: number
+        by_doctor:
+          type: array
+          items:
+            $ref: "#/components/schemas/DoctorCompletionStat"
+        by_city:
+          type: array
+          items:
+            $ref: "#/components/schemas/CityCompletionStat"
+
+    DoctorCompletionStat:
+      type: object
+      required: [doctor_name, completion_rate]
+      properties:
+        doctor_name:
+          type: string
+        completion_rate:
+          type: number
+
+    CityCompletionStat:
+      type: object
+      required: [city, completion_rate]
+      properties:
+        city:
+          type: string
+        completion_rate:
+          type: number
+
+    Payment:
+      type: object
+      required: [id, amount, gateway, status, date, patient_name]
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+        gateway:
+          type: string
+        status:
+          type: string
+        date:
+          type: string
+        patient_name:
+          type: string
+        doctor_name:
+          type: ["string", "null"]
+        appointment_id:
+          type: ["string", "null"]
+        consultation_fee:
+          type: ["number", "null"]
+        platform_fee:
+          type: ["number", "null"]
+        tax:
+          type: ["number", "null"]
+        refund_status:
+          type: ["string", "null"]
+
+    PaymentListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    PaymentStats:
+      type: object
+      required: [total_collected, matched, unmatched, failed_count]
+      properties:
+        total_collected:
+          type: number
+        matched:
+          type: number
+        unmatched:
+          type: number
+        failed_count:
+          type: integer
+        by_gateway:
+          type: array
+          items:
+            $ref: "#/components/schemas/GatewayStat"
+        doctor_pending_payouts:
+          type: number
+
+    GatewayStat:
+      type: object
+      required: [gateway, amount, percentage]
+      properties:
+        gateway:
+          type: string
+        amount:
+          type: number
+        percentage:
+          type: number
+
+    RefundInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+        amount:
+          type: number
+
+    Subscription:
+      type: object
+      required: [id, patient_name, plan, start_date, renewal_date, status, amount]
+      properties:
+        id:
+          type: string
+        patient_name:
+          type: string
+        patient_age:
+          type: ["integer", "null"]
+        patient_gender:
+          type: ["string", "null"]
+        plan:
+          type: string
+        start_date:
+          type: string
+        renewal_date:
+          type: string
+        status:
+          type: string
+        amount:
+          type: number
+        days_until_renewal:
+          type: ["integer", "null"]
+
+    SubscriptionListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Subscription"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    Plan:
+      type: object
+      required: [id, name, price, features]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        billing_cycle:
+          type: string
+        features:
+          type: object
+          additionalProperties: true
+        active_subscribers:
+          type: ["integer", "null"]
+
+    SubscriptionStats:
+      type: object
+      required: [mrr, active_subscribers, churn_rate, renewals_this_month]
+      properties:
+        mrr:
+          type: number
+        mrr_change:
+          type: number
+        active_subscribers:
+          type: integer
+        active_subscribers_change:
+          type: number
+        churn_rate:
+          type: number
+        renewals_this_month:
+          type: integer
+        plan_distribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanDistributionItem"
+
+    PlanDistributionItem:
+      type: object
+      required: [plan, count, percentage]
+      properties:
+        plan:
+          type: string
+        count:
+          type: integer
+        percentage:
+          type: number
+
+    SupportTicket:
+      type: object
+      required: [id, ticket_id, category, status, priority, raised_by, date, user_type]
+      properties:
+        id:
+          type: string
+        ticket_id:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        raised_by:
+          type: string
+        user_type:
+          type: string
+        date:
+          type: string
+        assigned_to:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        resolution_notes:
+          type: ["string", "null"]
+        linked_appointment_id:
+          type: ["string", "null"]
+        refund_amount:
+          type: ["number", "null"]
+
+    TicketListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SupportTicket"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    TicketUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        assigned_to:
+          type: string
+        resolution_notes:
+          type: string
+        priority:
+          type: string
+
+    SupportStats:
+      type: object
+      required: [avg_response_time, sla_breaches, avg_resolution_time, tickets_closed_week]
+      properties:
+        avg_response_time:
+          type: string
+        sla_breaches:
+          type: integer
+        avg_resolution_time:
+          type: string
+        tickets_closed_week:
+          type: integer
+        sla_compliance:
+          type: number
+        agent_performance:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentPerformance"
+
+    AgentPerformance:
+      type: object
+      required: [agent_name, score]
+      properties:
+        agent_name:
+          type: string
+        score:
+          type: number
+
+    AuditLog:
+      type: object
+      required: [id, admin_user, action_type, entity_type, timestamp, ip_address]
+      properties:
+        id:
+          type: string
+        admin_user:
+          type: string
+        action_type:
+          type: string
+        entity_type:
+          type: string
+        entity_id:
+          type: ["string", "null"]
+        entity_name:
+          type: ["string", "null"]
+        timestamp:
+          type: string
+        ip_address:
+          type: string
+
+    AuditLogListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AuditStats:
+      type: object
+      required: [active_admins, suspicious_events, locked_accounts, recent_compliance_actions]
+      properties:
+        active_admins:
+          type: integer
+        active_admins_change:
+          type: number
+        suspicious_events:
+          type: integer
+        suspicious_events_change:
+          type: number
+        locked_accounts:
+          type: integer
+        locked_accounts_change:
+          type: number
+        recent_compliance_actions:
+          type: integer
+        recent_compliance_actions_change:
+          type: number
+
+    AdminUser:
+      type: object
+      required: [id, name, email, role, status, last_active]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+        last_active:
+          type: string
+        avatar_url:
+          type: ["string", "null"]
+        failed_attempts:
+          type: ["integer", "null"]
+
+    AdminUserInput:
+      type: object
+      required: [name, email, role]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+
+    StatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+        reason:
+          type: ["string", "null"]

@@ -1,0 +1,741 @@
+PHASE 3 — DATABASE SCHEMA
+
+Create/repair real database schema.
+
+Required models/tables:
+
+User/Admin
+User
+id
+email
+phone
+fullName
+role
+status
+createdAt
+updatedAt
+AdminUser
+id
+userId
+role: SUPER_ADMIN | ADMIN | SUPPORT | FINANCE | VERIFICATION_OFFICER
+permissions
+isActive
+lastLoginAt
+createdAt
+updatedAt
+Doctor
+Doctor
+id
+userId
+fullName
+phone
+email
+gender
+specialty
+qualifications
+experienceYears
+bio
+consultationFee
+city
+area
+pmdcNumber
+verificationStatus: PENDING | IN_REVIEW | VERIFIED | REJECTED | SUSPENDED
+profileStatus: INCOMPLETE | COMPLETE
+rating
+totalReviews
+isAvailableOnline
+createdAt
+updatedAt
+DoctorVerification
+id
+doctorId
+pmdcNumber
+cnicFrontUrl
+cnicBackUrl
+degreeUrl
+certificateUrl
+status
+submittedAt
+reviewedAt
+reviewedByAdminId
+rejectionReason
+notes
+Clinic
+Clinic
+id
+name
+phone
+address
+city
+area
+status
+createdAt
+updatedAt
+DoctorClinic
+id
+doctorId
+clinicId
+consultationFee
+isActive
+Availability / Appointments
+DoctorAvailability
+id
+doctorId
+dayOfWeek
+startTime
+endTime
+slotDurationMinutes
+consultationType: ONLINE | CLINIC | BOTH
+isActive
+Appointment
+id
+patientId
+doctorId
+clinicId nullable
+appointmentDate
+startTime
+endTime
+consultationType: ONLINE | CLINIC
+status: HELD | CONFIRMED | COMPLETED | CANCELLED | NO_SHOW | RESCHEDULED
+paymentStatus
+fee
+platformCommission
+doctorEarning
+cancellationReason
+createdAt
+updatedAt
+Payment / Refund / Payout
+Payment
+id
+appointmentId
+patientId
+doctorId
+amount
+method: CASH | SAFEPLAY | JAZZCASH | EASYPAISA | CARD | BANK
+status: PENDING | PAID | FAILED | REFUNDED
+transactionRef
+createdAt
+Refund
+id
+paymentId
+appointmentId
+amount
+reason
+status: REQUESTED | APPROVED | REJECTED | PROCESSED
+requestedBy
+reviewedByAdminId
+adminNotes
+createdAt
+updatedAt
+DoctorPayout
+id
+doctorId
+amount
+status: PENDING | APPROVED | PAID | REJECTED
+bankName
+accountTitle
+accountNumber
+iban
+walletProvider
+walletNumber
+requestedAt
+processedAt
+processedByAdminId
+Support / Reviews / Audit
+SupportTicket
+id
+userId
+subject
+description
+category
+priority
+status: OPEN | IN_PROGRESS | RESOLVED | CLOSED
+assignedToAdminId
+createdAt
+updatedAt
+Review
+id
+appointmentId
+patientId
+doctorId
+rating
+comment
+status: PENDING | PUBLISHED | HIDDEN | REPORTED
+createdAt
+AuditLog
+id
+actorId
+actorRole
+action
+entityType
+entityId
+oldValue
+newValue
+ipAddress
+userAgent
+createdAt
+Notification
+id
+userId
+title
+message
+type
+channel: IN_APP | SMS | EMAIL | PUSH
+status
+createdAt
+
+Also create seed data for development.
+
+PHASE 4 — ADMIN WEBSITE REPAIR
+
+Fix and complete admin website.
+
+Admin routes/modules required:
+
+Login
+Dashboard
+Doctor verification queue
+Doctor detail page
+Doctor management
+Patient management basic list
+Clinic management
+Appointments
+Payments
+Refunds
+Doctor payouts/withdrawals
+Support tickets
+Review moderation
+Notifications
+Audit logs
+Settings
+Admin user management
+
+Each page must have:
+
+Real API integration
+Loading state
+Empty state
+Error state
+Search/filter if useful
+Pagination if list page
+Proper action buttons
+Confirmation dialog for sensitive action
+Toast success/error messages
+Clean responsive UI
+No broken links
+PHASE 5 — ADMIN DASHBOARD
+
+Dashboard should show real or seeded backend data:
+
+Cards:
+
+Total doctors
+Pending verifications
+Verified doctors
+Total patients
+Today appointments
+Completed appointments
+Pending refunds
+Pending payouts
+Monthly revenue
+Support tickets open
+
+Charts:
+
+Revenue trend
+Appointment trend
+Doctor verification trend
+Top specialties
+
+Tables:
+
+Recent appointments
+Verification queue
+Recent support tickets
+Recent payments/refunds
+PHASE 6 — DOCTOR VERIFICATION MODULE
+
+This is most important.
+
+Admin must be able to:
+
+View pending doctor verification list.
+Open doctor detail.
+View:
+Doctor profile
+PMDC number
+CNIC documents
+Degree/certificates
+Clinic info
+Contact info
+Approve doctor.
+Reject doctor with required reason.
+Suspend doctor.
+Reopen rejected verification.
+Add internal notes.
+Create audit log for every action.
+Notify doctor after approve/reject.
+
+Doctor statuses:
+
+INCOMPLETE
+PENDING
+IN_REVIEW
+VERIFIED
+REJECTED
+SUSPENDED
+
+Do not allow unverified doctors to receive appointments.
+
+PHASE 7 — APPOINTMENT SYSTEM FOR ADMIN + DOCTOR
+
+Build appointment logic needed for admin and doctor app.
+
+Appointment statuses:
+
+HELD
+CONFIRMED
+CHECKED_IN
+IN_CONSULTATION
+COMPLETED
+CANCELLED
+NO_SHOW
+RESCHEDULED
+
+Admin can:
+
+View all appointments
+Filter by doctor/patient/status/date
+Cancel appointment with reason
+Mark no-show
+View payment status
+View doctor/patient info
+
+Doctor can:
+
+View today appointments
+View upcoming appointments
+Check in 30 minutes before consultation
+Start consultation
+Mark completed
+Mark no-show with reason
+See patient basic info
+See consultation type
+
+Important:
+Add logic to prevent invalid status transitions.
+
+Example:
+
+Cannot complete a cancelled appointment.
+Cannot start consultation before check-in.
+Cannot receive appointment if doctor is not verified.
+PHASE 8 — PAYMENT, REFUND, AND DOCTOR PAYOUT
+
+Admin payment module:
+
+View payments
+Filter by status/method/date
+See appointment linked with payment
+Approve/reject refund request
+Process refund status
+Create audit logs
+
+Doctor earning module:
+
+Doctor sees:
+Total earnings
+Available balance
+Pending payout
+Paid payouts
+Appointment-wise earnings
+
+Doctor payout request:
+
+Doctor can request payout/withdraw.
+Doctor can select bank or wallet.
+Admin can approve/reject payout.
+Admin can mark payout as paid.
+Audit log created.
+
+Commission logic:
+
+Store consultation fee.
+Store platform commission.
+Store doctor earning.
+
+For now, if real payment gateway is not ready, implement clean mock payment provider interface:
+
+interface PaymentProvider {
+  createPayment(input): Promise<PaymentResult>;
+  refundPayment(input): Promise<RefundResult>;
+}
+
+Do not hardcode payment logic everywhere.
+
+PHASE 9 — SUPPORT TICKET SYSTEM
+
+Admin can:
+
+View tickets
+Filter by status/priority/category
+Assign ticket to admin
+Reply/update ticket
+Change status
+Close ticket
+
+Doctor can:
+
+Create support ticket
+View own tickets
+Reply to own ticket
+
+Add audit logs for admin-side ticket actions.
+
+PHASE 10 — REVIEW MODERATION
+
+Admin can:
+
+View reviews
+Filter reported/pending/published/hidden
+Publish review
+Hide review
+View linked appointment
+View doctor/patient basic info
+
+Rules:
+
+Only completed appointments can have reviews.
+Reported reviews go into moderation.
+Hidden reviews should not affect public display.
+PHASE 11 — AUDIT LOGS
+
+Every sensitive admin action must create audit log:
+
+Doctor approve/reject/suspend
+Patient block/unblock
+Appointment cancel/no-show
+Refund approve/reject
+Payout approve/reject/paid
+Admin user create/disable
+Settings change
+Review hide/publish
+
+Audit log page must show:
+
+Actor
+Role
+Action
+Entity type
+Entity id
+Time
+Old value/new value if possible
+Search/filter
+PHASE 12 — DOCTOR APP REPAIR
+
+Repair the doctor app first, before patient app.
+
+Doctor app required screens:
+
+Login
+Doctor onboarding/profile completion
+Verification submission
+Verification status screen
+Dashboard
+Today appointments
+Upcoming appointments
+Appointment detail
+Schedule/availability
+Earnings
+Payout request
+Support tickets
+Profile/settings
+
+Doctor app must support:
+
+Submit PMDC number
+Upload CNIC/degree/certificate placeholders or real file upload if storage exists
+View verification status
+Edit profile
+Set availability
+View appointments
+Check-in
+Start consultation
+Complete consultation
+View earnings
+Request payout
+Create support ticket
+
+Do not allow doctor to access appointment features until verified.
+
+If file upload/storage is not ready, build the UI and backend structure with placeholder storage adapter and clear TODO, but do not break the app.
+
+PHASE 13 — AUTH AND RBAC
+
+Create proper role-based access.
+
+Roles:
+
+SUPER_ADMIN
+ADMIN
+SUPPORT
+FINANCE
+VERIFICATION_OFFICER
+DOCTOR
+CLINIC_ADMIN
+CLINIC_STAFF
+PATIENT later
+
+Backend must enforce permissions.
+
+Examples:
+
+SUPER_ADMIN:
+
+Full access
+
+ADMIN:
+
+Most operations except critical system settings
+
+VERIFICATION_OFFICER:
+
+Doctor verification only
+
+FINANCE:
+
+Payments, refunds, payouts only
+
+SUPPORT:
+
+Support tickets and limited user view
+
+DOCTOR:
+
+Own profile, own appointments, own earnings, own tickets only
+
+Do not rely only on frontend hiding buttons.
+Backend must block unauthorized access.
+
+PHASE 14 — API ENDPOINTS REQUIRED
+
+Create or repair these endpoints.
+
+Auth/Admin
+POST /api/auth/login
+POST /api/auth/logout
+GET /api/auth/me
+GET /api/admin-users
+POST /api/admin-users
+PATCH /api/admin-users/:id/status
+Dashboard
+GET /api/dashboard/stats
+GET /api/dashboard/activity
+GET /api/dashboard/revenue-trend
+GET /api/dashboard/verification-queue
+Doctors
+GET /api/doctors
+GET /api/doctors/:id
+POST /api/doctors
+PATCH /api/doctors/:id
+PATCH /api/doctors/:id/status
+GET /api/doctors/:id/verification
+POST /api/doctors/:id/verification/approve
+POST /api/doctors/:id/verification/reject
+POST /api/doctors/:id/suspend
+Doctor App
+GET /api/doctor/me
+PATCH /api/doctor/me
+POST /api/doctor/verification/submit
+GET /api/doctor/verification/status
+GET /api/doctor/dashboard
+GET /api/doctor/appointments
+GET /api/doctor/appointments/:id
+POST /api/doctor/appointments/:id/check-in
+POST /api/doctor/appointments/:id/start
+POST /api/doctor/appointments/:id/complete
+POST /api/doctor/appointments/:id/no-show
+GET /api/doctor/availability
+POST /api/doctor/availability
+PATCH /api/doctor/availability/:id
+DELETE /api/doctor/availability/:id
+GET /api/doctor/earnings
+GET /api/doctor/payouts
+POST /api/doctor/payouts
+Appointments
+GET /api/appointments
+GET /api/appointments/:id
+PATCH /api/appointments/:id
+POST /api/appointments/:id/cancel
+POST /api/appointments/:id/no-show
+Payments/Refunds/Payouts
+GET /api/payments
+GET /api/payments/:id
+GET /api/payments/stats
+GET /api/refunds
+POST /api/refunds/:id/approve
+POST /api/refunds/:id/reject
+POST /api/refunds/:id/process
+GET /api/payouts
+POST /api/payouts/:id/approve
+POST /api/payouts/:id/reject
+POST /api/payouts/:id/mark-paid
+Support
+GET /api/support/tickets
+GET /api/support/tickets/:id
+POST /api/support/tickets
+PATCH /api/support/tickets/:id
+POST /api/support/tickets/:id/reply
+Reviews
+GET /api/reviews
+POST /api/reviews/:id/publish
+POST /api/reviews/:id/hide
+Audit
+GET /api/audit/logs
+GET /api/audit/stats
+PHASE 15 — UI/UX QUALITY REQUIREMENTS
+
+Admin website design should feel like a premium healthcare SaaS dashboard.
+
+UI rules:
+
+Clean layout
+Proper sidebar
+Mobile responsive
+Consistent spacing
+Professional cards/tables
+Search and filters
+Clear status badges
+Confirmation modals
+Toasts for all actions
+Empty states
+Error states
+Skeleton loading where useful
+No ugly default browser UI
+No random colors
+Healthcare trust feeling
+
+Doctor app design:
+
+Simple and fast
+Doctor can understand quickly
+Today appointments should be front and center
+Verification status should be clear
+Earnings should be clear
+Payout request should be simple
+Avoid clutter
+PHASE 16 — SECURITY REQUIREMENTS
+
+Implement:
+
+Backend RBAC checks.
+Input validation with Zod.
+Central error handling.
+No PHI in logs.
+Audit logs for sensitive actions.
+Environment variable validation.
+Secure CORS.
+No hardcoded secrets.
+No placeholder Supabase keys in production.
+API errors should not leak stack traces in production.
+File/document access should be private-ready.
+Admin actions must require authenticated admin role.
+Doctor actions must only affect own data.
+PHASE 17 — TESTING / QA
+
+Add or fix:
+
+Typecheck
+Build
+Basic API tests if test setup exists
+Manual QA checklist
+Seed data for testing
+
+Test flows:
+
+Admin:
+
+Login
+Dashboard loads
+View pending doctors
+Approve doctor
+Reject doctor with reason
+Suspend doctor
+View appointments
+Cancel appointment
+View payments
+Approve refund
+Approve payout
+View audit logs
+
+Doctor:
+
+Login
+Complete profile
+Submit verification
+See pending status
+After admin approval, access appointments
+Check in appointment
+Start appointment
+Complete appointment
+View earnings
+Request payout
+Create support ticket
+PHASE 18 — FINAL REPORT REQUIRED
+
+After completing, provide a clear report:
+
+Fixed
+List all fixed issues.
+Added
+List all new features.
+Changed Files
+List changed files/folders.
+Database
+List created models/tables.
+API
+List working endpoints.
+Admin Website
+List working pages.
+Doctor App
+List working screens.
+Commands Run
+pnpm install
+pnpm typecheck
+pnpm build
+any other command
+Remaining Issues
+Anything not completed.
+Next Recommended Task
+
+Ask me what I want next:
+
+Start patient app
+Improve admin UI design
+Add real payment gateway
+Add real file upload/storage
+Add SMS/Email/Push notifications
+Deploy project
+
+Do not start next task without asking.
+
+IMPORTANT COMMUNICATION RULES
+
+During work:
+
+If you find confusion, ask a question.
+If you complete one phase, summarize and ask whether to continue.
+If something is broken, explain clearly.
+If multiple options exist, recommend the best one.
+Do not silently skip important features.
+Do not say completed unless tested.
+Do not fake database connection.
+Do not fake authentication security.
+Do not build patient app until I approve.
+
+Start now by inspecting the project and telling me:
+
+What stack is actually being used
+What is broken
+What can be repaired safely first
+Then begin Phase 1 repair

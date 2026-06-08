@@ -1,0 +1,476 @@
+You made good progress, but the task is NOT complete yet.
+
+Important correction:
+Do not stop after creating pages or mock routes.
+The project must become a working healthcare admin + doctor system, not just UI with mock data.
+
+Your own report says:
+"Next, I can connect the API server to the real PostgreSQL database using Drizzle ORM, replacing the in-memory mock arrays."
+
+That means the previous task is incomplete.
+
+Continue in Agent Mode and complete the next required phase.
+
+# STRICT INSTRUCTION
+
+Do NOT ask me whether to connect APIs to the database.
+Yes, connect them now.
+
+Do NOT stop after small progress.
+Continue module by module until admin website + backend + doctor app are actually working.
+
+Only ask me a question if there is a real blocking decision that cannot be safely decided.
+
+If a message limit or tool limit happens, continue from the exact last completed step when possible. Do not restart. Do not forget the previous work.
+
+When one phase completes, report briefly and continue to the next critical phase automatically unless I told you to stop.
+
+Do NOT start the patient app yet.
+
+Current priority:
+
+1. Replace all in-memory mock API routes with real PostgreSQL Drizzle queries.
+2. Seed database with realistic test data.
+3. Fix auth/RBAC properly.
+4. Fix all TypeScript errors.
+5. Complete admin modules.
+6. Repair doctor app.
+7. Connect doctor app to backend.
+8. Test full flows.
+
+---
+
+# PHASE A — REAL DATABASE INTEGRATION
+
+Replace mock arrays with real database queries for all existing API routes.
+
+Required routes to connect to PostgreSQL:
+
+## Dashboard
+- GET /api/dashboard/stats
+- GET /api/dashboard/activity
+- GET /api/dashboard/revenue-trend
+- GET /api/dashboard/verification-queue
+
+## Doctors
+- GET /api/doctors
+- POST /api/doctors
+- GET /api/doctors/stats
+- GET /api/doctors/:id
+- PATCH /api/doctors/:id
+- PATCH /api/doctors/:id/status
+- GET /api/doctors/:id/verification
+- POST /api/doctors/:id/verification/approve
+- POST /api/doctors/:id/verification/reject
+- POST /api/doctors/:id/suspend
+
+## Patients
+- GET /api/patients
+- GET /api/patients/:id
+- PATCH /api/patients/:id
+- PATCH /api/patients/:id/block
+
+## Appointments
+- GET /api/appointments
+- GET /api/appointments/stats
+- GET /api/appointments/:id
+- PATCH /api/appointments/:id
+- POST /api/appointments/:id/cancel
+- POST /api/appointments/:id/no-show
+
+## Payments
+- GET /api/payments
+- GET /api/payments/stats
+- GET /api/payments/:id
+
+## Refunds
+- GET /api/refunds
+- GET /api/refunds/stats
+- PATCH /api/refunds/:id
+- POST /api/refunds/:id/approve
+- POST /api/refunds/:id/reject
+- POST /api/refunds/:id/process
+
+## Payouts
+- GET /api/payouts
+- GET /api/payouts/stats
+- PATCH /api/payouts/:id
+- POST /api/payouts/:id/approve
+- POST /api/payouts/:id/reject
+- POST /api/payouts/:id/mark-paid
+
+## Clinics
+- GET /api/clinics
+- POST /api/clinics
+- PATCH /api/clinics/:id
+- DELETE /api/clinics/:id
+
+## Support
+- GET /api/support/tickets
+- GET /api/support/stats
+- GET /api/support/tickets/:id
+- POST /api/support/tickets
+- PATCH /api/support/tickets/:id
+- POST /api/support/tickets/:id/reply
+
+## Reviews
+- GET /api/reviews
+- GET /api/reviews/stats
+- POST /api/reviews/:id/publish
+- POST /api/reviews/:id/hide
+
+## Notifications
+- GET /api/notifications
+- GET /api/notifications/unread-count
+- PATCH /api/notifications/:id
+- POST /api/notifications/mark-all-read
+
+## Audit
+- GET /api/audit/logs
+- GET /api/audit/stats
+
+## Admin Users
+- GET /api/admin-users
+- POST /api/admin-users
+- PATCH /api/admin-users/:id/status
+
+---
+
+# PHASE B — SEED DATA
+
+Create a proper seed script.
+
+Seed realistic data for:
+
+- 5 admin users with different roles
+- 20 doctors
+- 10 pending verification doctors
+- 10 verified doctors
+- 5 clinics
+- 50 patients
+- 100 appointments with different statuses
+- payments for appointments
+- refund requests
+- payout requests
+- support tickets
+- reviews
+- notifications
+- audit logs
+
+Seed data must be internally consistent.
+
+Example:
+- payment must belong to real appointment
+- payout must belong to real doctor
+- review must belong to completed appointment
+- verification must belong to real doctor
+- audit log must reference real entity
+
+Add scripts:
+
+- pnpm db:push
+- pnpm db:seed
+- pnpm db:reset if safe
+
+---
+
+# PHASE C — AUTH AND RBAC
+
+Current hardcoded login/localStorage bypass is not acceptable.
+
+Implement secure development auth at minimum.
+
+Required:
+
+1. Backend /api/auth/login route.
+2. Backend /api/auth/me route.
+3. Backend /api/auth/logout route.
+4. Session or JWT token.
+5. Password hashing if local credentials are used.
+6. Admin role stored in database.
+7. Backend middleware checks auth.
+8. Backend middleware checks role permissions.
+9. Frontend AuthProvider calls /api/auth/me.
+10. Remove fake localStorage-only admin auth.
+11. Protect admin routes.
+12. Protect doctor routes.
+
+Admin roles:
+
+- SUPER_ADMIN
+- ADMIN
+- FINANCE
+- SUPPORT
+- VERIFICATION_OFFICER
+
+Permissions:
+
+SUPER_ADMIN:
+- full access
+
+ADMIN:
+- dashboard, doctors, patients, appointments, clinics, reviews, support
+
+FINANCE:
+- payments, refunds, payouts only
+
+SUPPORT:
+- support tickets, limited patient/doctor view
+
+VERIFICATION_OFFICER:
+- doctor verification only
+
+Backend must enforce permission.
+Frontend hiding buttons is not enough.
+
+---
+
+# PHASE D — AUDIT LOGS
+
+Every sensitive action must write audit log to DB.
+
+Required audit actions:
+
+- doctor approved
+- doctor rejected
+- doctor suspended
+- patient blocked
+- appointment cancelled
+- appointment no-show
+- refund approved
+- refund rejected
+- refund processed
+- payout approved
+- payout rejected
+- payout marked paid
+- review published
+- review hidden
+- admin user created
+- admin user suspended
+- clinic created/updated/deleted
+
+Audit log should record:
+
+- actor admin id
+- actor role
+- action
+- entity type
+- entity id
+- old value
+- new value
+- ip address if available
+- user agent if available
+- timestamp
+
+---
+
+# PHASE E — BUSINESS LOGIC VALIDATION
+
+Add real validation rules.
+
+Doctor verification:
+- Only pending/in_review doctor can be approved/rejected.
+- Reject requires reason.
+- Approve changes doctor status to VERIFIED.
+- Reject changes doctor status to REJECTED.
+- Suspend changes doctor status to SUSPENDED.
+- All actions create audit logs and notifications.
+
+Appointment:
+- Unverified doctor cannot receive appointment.
+- Cancelled appointment cannot be completed.
+- Completed appointment cannot be cancelled.
+- No-show requires reason.
+- Start consultation only allowed after check-in.
+- Complete consultation only allowed after started.
+
+Refund:
+- Only paid payments can be refunded.
+- Refund amount cannot exceed payment amount.
+- Reject requires reason.
+- Process only approved refund.
+
+Payout:
+- Payout amount cannot exceed doctor available balance.
+- Reject requires reason.
+- Mark paid only after approved.
+- Store bank/wallet details.
+
+Review:
+- Review only for completed appointment.
+- Hidden reviews should not count in public rating.
+- Publish/hide actions require admin permission.
+
+---
+
+# PHASE F — ADMIN FRONTEND CONNECT TO REAL API
+
+Update admin website so all pages use real backend APIs.
+
+Required:
+
+- Dashboard real data
+- Doctors real data
+- Doctor detail real data
+- Verification actions real API
+- Patients real data
+- Appointments real data
+- Payments real data
+- Refunds real data
+- Payouts real data
+- Clinics real data
+- Reviews real data
+- Support tickets real data
+- Notifications real data
+- Admin users real data
+- Audit logs real data
+
+Every page must have:
+
+- loading state
+- error state
+- empty state
+- search/filter
+- pagination where needed
+- toast success/error
+- confirm modal for dangerous actions
+
+Do not leave mock frontend arrays.
+
+---
+
+# PHASE G — FIX TYPESCRIPT AND BUILD ERRORS
+
+Do not ignore pre-existing TypeScript errors.
+
+Fix:
+
+- button-group.tsx errors
+- calendar.tsx errors
+- api-client-react dist/type errors
+- any broken imports
+- any wrong route types
+- any schema type mismatch
+
+Required commands must pass:
+
+- pnpm typecheck
+- pnpm build
+
+If lint exists:
+
+- pnpm lint
+
+Do not report complete until these pass.
+
+---
+
+# PHASE H — DOCTOR APP REPAIR
+
+After backend/admin DB integration works, repair doctor app.
+
+Doctor app must support:
+
+1. Login
+2. /api/auth/me or doctor auth
+3. Doctor dashboard
+4. Profile completion
+5. Verification submission
+6. Verification status
+7. Today appointments
+8. Upcoming appointments
+9. Appointment detail
+10. Check in
+11. Start consultation
+12. Complete consultation
+13. Mark no-show with reason
+14. Availability management
+15. Earnings
+16. Payout request
+17. Support tickets
+18. Profile/settings
+
+Doctor app rules:
+
+- Unverified doctor can only access profile + verification status + support.
+- Verified doctor can access appointments and earnings.
+- Doctor can only see own appointments.
+- Doctor can only request own payout.
+- Doctor can only edit own profile.
+- Doctor can only manage own availability.
+
+Connect the doctor app to real backend APIs.
+Do not leave mock auth or mock data.
+
+---
+
+# PHASE I — TEST FULL FLOWS
+
+Manually test these flows and report result:
+
+Admin flow:
+1. Login as SUPER_ADMIN
+2. Dashboard loads real DB data
+3. View pending doctor
+4. Approve doctor
+5. Audit log created
+6. Notification created
+7. Doctor status becomes VERIFIED
+
+Doctor flow:
+1. Login as doctor
+2. View verification status
+3. If verified, open appointments
+4. Check in appointment
+5. Start consultation
+6. Complete appointment
+7. Earnings update
+
+Finance flow:
+1. View refund
+2. Approve refund
+3. Process refund
+4. Audit log created
+5. View payout
+6. Approve payout
+7. Mark payout paid
+
+Support flow:
+1. View ticket
+2. Assign/update ticket
+3. Close ticket
+4. Audit log created
+
+---
+
+# FINAL REPORT FORMAT
+
+When done, report:
+
+## Completed
+List completed phases.
+
+## Real DB Connected Routes
+List all routes now using PostgreSQL.
+
+## Auth/RBAC
+Explain how auth works and which roles are enforced.
+
+## Admin Pages Working
+List pages.
+
+## Doctor App Screens Working
+List screens.
+
+## Typecheck/Build
+Show exact command results.
+
+## Remaining
+List only honest remaining tasks.
+
+## Next Question
+Ask me:
+"What should I do next: patient app, real payment gateway, real file upload, notifications, or deployment?"
+
+Important:
+Do not start patient app without my approval.

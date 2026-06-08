@@ -1,0 +1,192 @@
+You are a senior full-stack healthcare SaaS architect, senior TypeScript developer, UI/UX expert, QA engineer, and product manager.
+
+I have an existing healthcare project called AsaanCare / SahatGhar. The current project already has:
+
+- Admin website
+- API server
+- Doctor app folder
+- Shared API/spec packages
+- Some mock routes/data
+- Some UI pages
+
+But the project has mistakes, incomplete features, mock data, weak database/auth logic, and some stack confusion.
+
+IMPORTANT:
+Do NOT start patient app yet.
+First repair and complete:
+1. Admin website
+2. Doctor app
+3. Backend/API/database foundation required for admin + doctor app
+
+After completing this task, ask me what to do next before starting patient app.
+
+---
+
+# MAIN GOAL
+
+Repair the existing project into a clean, working, production-ready foundation for a Pakistan healthcare marketplace/admin system.
+
+The product is like Oladoc/Marham/Healthwire but better. Core modules:
+
+- Admin dashboard
+- Doctor verification
+- Doctor management
+- Clinic management
+- Appointment management
+- Payment/refund management
+- Doctor payout/withdraw system
+- Support tickets
+- Reviews moderation
+- Audit logs
+- Notifications
+- Doctor mobile app/dashboard
+- Doctor schedule/availability
+- Doctor consultation queue
+- Doctor earnings
+- Doctor verification profile
+
+Patient app will come later. For now, only build what admin and doctor app need.
+
+---
+
+# CURRENT PROBLEM
+
+The current project may contain:
+
+- Vite React admin instead of Next.js
+- Express backend instead of NestJS
+- Drizzle setup but empty database schema
+- Mock/in-memory API data
+- Weak auth using localStorage
+- Missing production RBAC
+- Incomplete doctor verification
+- Incomplete appointment workflow
+- Incomplete payment/refund/payout system
+- Doctor app incomplete or broken
+- Placeholder Supabase config
+- Missing real database models
+- Missing error handling
+- Missing loading/empty/error states
+- Missing proper API integration between frontend and backend
+- Missing validation
+- Missing audit logs
+- Missing security protection
+
+You must inspect the existing code first and then repair it carefully.
+
+---
+
+# STRICT RULES
+
+1. Do not delete useful existing code unless replacing it with a better working version.
+2. Keep the project build passing.
+3. After every major change, run:
+   - install if needed
+   - typecheck
+   - lint if available
+   - build
+4. Do not leave broken imports.
+5. Do not leave placeholder pages.
+6. Do not use fake success if feature is not connected.
+7. Do not add patient app yet.
+8. Do not add unnecessary new tech without reason.
+9. If there is any doubt, ask me before making a big architecture change.
+10. If the task becomes too large, complete it module by module and ask me for the next task.
+11. At the end, provide:
+    - What was fixed
+    - What files changed
+    - What features now work
+    - What is still pending
+    - What should be done next
+
+---
+
+# STACK DECISION
+
+First inspect the current project.
+
+If the current admin is Vite + React and already working, keep it for now unless migration is necessary.
+
+If current backend is Express and already structured, keep it for now unless migration is necessary.
+
+But the final architecture should be clean and scalable:
+
+Frontend:
+- React + TypeScript
+- Tailwind
+- shadcn/Radix UI
+- TanStack Query
+- Proper routing
+- Reusable components
+
+Backend:
+- TypeScript
+- Express or NestJS
+- PostgreSQL
+- Prisma preferred OR complete the existing Drizzle setup if already used
+- Zod validation
+- Secure auth/RBAC
+- Audit logging
+
+Database:
+- PostgreSQL
+- Real schema/models
+- No mock-only backend for production modules
+
+Auth:
+- Use existing auth provider if already configured.
+- If Supabase is used, make it properly secure.
+- If Clerk is already used, integrate it properly.
+- Do not rely only on localStorage for admin role/security.
+- Admin authorization must be checked on backend.
+
+---
+
+# PHASE 1 — FULL PROJECT INSPECTION
+
+Before coding, inspect and report:
+
+1. Root folder structure
+2. Admin website structure
+3. Doctor app structure
+4. API server structure
+5. Shared packages
+6. package.json files and versions
+7. Current routes/pages
+8. Current API endpoints
+9. Current database setup
+10. Current auth system
+11. Current broken/missing features
+12. Build/type errors
+
+Then decide the safest repair plan.
+
+---
+
+# PHASE 2 — CLEAN PROJECT FOUNDATION
+
+Fix project foundation:
+
+1. Clean broken imports.
+2. Remove unused duplicate files only if safe.
+3. Fix TypeScript config issues.
+4. Fix environment variable handling.
+5. Create `.env.example` files.
+6. Add proper config validation.
+7. Ensure frontend can call backend using one API base URL.
+8. Ensure backend has health check route.
+9. Ensure error handling middleware exists.
+10. Ensure consistent API response format.
+
+API response format should be:
+
+```ts
+{
+  success: boolean;
+  data?: any;
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+}

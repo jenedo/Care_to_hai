@@ -1,0 +1,1 @@
+- [SahatGhar auth approach](sahatghar-auth.md) — admin bypass uses hardcoded creds in AuthContext; no Supabase email confirmation needed

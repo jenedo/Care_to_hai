@@ -1,0 +1,171 @@
+You are a senior full-stack engineer, product architect, and UI implementation expert.
+
+Build a complete production-ready telemedicine/admin panel web app in Next.js App Router + TypeScript + Tailwind CSS + Supabase.
+
+IMPORTANT GOALS:
+- Recreate the uploaded design screenshots as exactly as possible.
+- Use the screenshots as the single source of truth for layout, spacing, typography, card shapes, colors, sidebar, topbar, dashboards, tables, forms, modals, status chips, and overall visual hierarchy.
+- Build a fully working app, not just static UI.
+- Include login, signup, logout, protected routes, role-based access, and data CRUD.
+- Connect all screens to Supabase Auth, Supabase Database, and Supabase Storage.
+- Make the admin panel responsive, clean, scalable, and production-ready.
+
+TECH STACK:
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Supabase Auth
+- Supabase Postgres
+- Supabase Storage
+- React Hook Form
+- Zod validation
+- TanStack Table for data tables
+- Recharts or Chart.js for analytics
+- Lucide icons
+
+APP TYPE:
+Healthcare / telemedicine marketplace admin panel.
+
+PRIMARY ROLES:
+- Super Admin
+- Admin
+- Verification Officer
+- Finance Manager
+- Support Agent
+- Doctor
+- Patient
+
+BUILD THESE CORE MODULES:
+1. Authentication
+- login page
+- signup page
+- forgot password
+- protected admin routes
+- role-based redirects after login
+
+2. Dashboard
+- KPI cards
+- revenue chart
+- booking trend chart
+- doctor growth chart
+- patient growth chart
+- pending approvals
+- pending payouts
+- cancellation rate
+- top specialties
+- most booked doctors
+- recent activity feed
+
+3. Doctor Management
+- list doctors
+- approve/reject/suspend
+- profile details
+- PMDC/document verification
+- specialty
+- fee
+- availability
+- ratings
+- cancellation rate
+- featured doctor toggle
+
+4. Patient Management
+- list patients
+- profile view
+- booking history
+- wallet
+- complaints
+- documents
+- block/unblock
+
+5. Clinic Management
+- clinics list
+- assign doctors
+- timings
+- address
+- active/inactive status
+
+6. Booking Management
+- all bookings table
+- status filters
+- create booking
+- reschedule
+- cancel
+- no-show
+- assign backup doctor
+- consultation history
+
+7. Payments and Refunds
+- payment status
+- commission
+- payouts
+- refund requests
+- approve/reject refunds
+- invoices
+- transaction history
+
+8. Consultation Module
+- video consultation UI placeholder
+- consult notes
+- prescriptions
+- patient record timeline
+- recording consent toggle
+- consultation summary
+
+9. Notifications
+- SMS/email/push notification list
+- send template-based messages
+- appointment reminders
+
+10. Content Management
+- specialties
+- cities
+- banners
+- blog articles
+- homepage sections
+- FAQs
+
+11. Security and Audit
+- audit log viewer
+- login history
+- action logs
+- data access logs
+- device/session tracking
+
+12. Settings
+- commission settings
+- refund rules
+- booking rules
+- app settings
+- role permissions
+- payment gateway config
+
+UI REQUIREMENTS:
+- Match uploaded screenshots exactly in spacing, alignment, sizes, shadows, and hierarchy.
+- Use reusable components.
+- Keep code modular and clean.
+- Create a professional sidebar with grouped navigation.
+- Create responsive tables, filters, tabs, chips, and modals.
+- Use loading states, empty states, and error states.
+- Use polished dashboard cards with icons and stats.
+- Use the same visual style across all pages.
+
+DATA REQUIREMENTS:
+- Create Supabase tables for users, roles, doctors, patients, clinics, bookings, payments, refunds, reviews, notifications, audit_logs, specialties, cities, files, consultations, and settings.
+- Add relationships and indexes.
+- Use RLS-friendly structure.
+- Prepare seed/mock data for UI testing.
+
+EXPECTED OUTPUT:
+- Build the full frontend first.
+- Then wire Supabase auth.
+- Then connect all CRUD and tables.
+- Then make the admin panel actually functional.
+
+WORKING STYLE:
+- If something is missing from the uploaded screenshots, infer the most professional telemedicine admin behavior.
+- Prioritize exact design replication.
+- Make decisions like a senior product engineer.
+- Do not ask me unnecessary questions.
+- Start by generating the project structure, then the core layout, then auth, then dashboard, then the rest of the modules.
+
+Now begin by creating the full file/folder structure and the login + dashboard foundation.

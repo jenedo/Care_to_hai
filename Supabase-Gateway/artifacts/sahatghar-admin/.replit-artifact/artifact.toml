@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "SahatGhar Admin Panel"
+version = "1.0.0"
+id = "artifacts/sahatghar-admin"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20913
+
+[services.development]
+run = "pnpm --filter @workspace/sahatghar-admin run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sahatghar-admin", "run", "build" ]
+publicDir = "artifacts/sahatghar-admin/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20913"
+BASE_PATH = "/"

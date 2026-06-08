@@ -1,0 +1,104 @@
+# TASK: Doctor App — Session Restore + End-to-End Screen Audit
+
+## Context
+Doctor login works. `POST /api/auth/doctor/login` returns `doctor_token` cookie.
+But if doctor closes and reopens the app — session is lost because app never calls
+`GET /api/auth/doctor/me` on launch.
+
+Fix this + audit all screens.
+
+---
+
+## Part 1 — Verify /api/auth/doctor/me exists
+
+Run:
+```bash
+curl http://localhost:3000/api/auth/doctor/me \
+  -b "doctor_token=PASTE_TOKEN_FROM_PREVIOUS_LOGIN"
+```
+
+Expected: 200 + doctor object
+If 404: add the route to `artifacts/api-server/src/routes/auth.ts`
+(same pattern as admin /me — read cookie, verify JWT, query doctorsTable)
+
+---
+
+## Part 2 — Fix AuthContext in doctor app
+
+Open `artifacts/doctor-app/contexts/AuthContext.tsx`
+
+Show me the EXACT current content first.
+
+Then check:
+- On app launch, does it call `/api/auth/doctor/me`?
+- If NO: add this to the context:
+
+```typescript
+// On mount — restore session from cookie
+useEffect(() => {
+  fetch("/api/auth/doctor/me", { credentials: "include" })
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (data?.success) setDoctor(data.data);
+    })
+    .finally(() => setLoading(false));
+}, []);
+```
+
+- If YES: show me the current implementation and confirm it works.
+
+---
+
+## Part 3 — Screen-by-screen audit
+
+For each screen, open the file and tell me:
+1. Does it use real API hooks or hardcoded mock data?
+2. Does it handle loading state?
+3. Does it handle error state (401, 404, network fail)?
+
+Screens to audit:
+| Screen | File | Real API? | Loading? | Error? |
+|--------|------|-----------|----------|--------|
+| Login | `app/login.tsx` | ? | ? | ? |
+| Dashboard | `app/(tabs)/dashboard.tsx` | ? | ? | ? |  
+| Appointments | `app/(tabs)/appointments.tsx` | ? | ? | ? |
+| Availability | `app/(tabs)/availability.tsx` | ? | ? | ? |
+| Profile | `app/(tabs)/profile.tsx` | ? | ? | ? |
+| Appointment Detail | `app/appointment/[id].tsx` | ? | ? | ? |
+
+---
+
+## Part 4 — Fix broken screens only
+
+After audit, for each screen marked "NO" on Real API:
+- Show me the mock data it currently uses
+- Replace with real API call to existing backend endpoint
+- Use the same pattern as working screens
+
+DO NOT redesign any screen.
+DO NOT change colors, layout, or components.
+ONLY replace mock data with real fetch calls.
+
+---
+
+## Part 5 — Final verification
+
+After all fixes, test this flow manually:
+
+1. Open doctor app login screen
+2. Login with: email=ayesha.noor@sahatghar.pk (or whichever Dr. Ayesha Noor was seeded with), password=SahatGhar@2025!
+3. Dashboard loads with real data
+4. Appointments tab shows real appointments
+5. Close and reopen app — still logged in (session restored)
+
+Report each step result.
+
+---
+
+## Rules
+- Read files BEFORE editing
+- Show current code before changing it
+- One screen at a time — do not batch edit all screens simultaneously
+- After each screen fix: confirm it compiles (no TypeScript errors)
+- Run `pnpm run typecheck` at the very end
+- Do NOT touch admin panel, api-server auth routes, or DB schema
