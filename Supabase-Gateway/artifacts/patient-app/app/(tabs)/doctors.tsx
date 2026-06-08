@@ -13,13 +13,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DoctorCard, DoctorItem } from "@/components/DoctorCard";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { API_BASE } from "@/contexts/AuthContext";
+import { API_BASE, useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 
 export default function DoctorsScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { token } = useAuth();
 
   const [doctors, setDoctors] = useState<DoctorItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,14 +29,16 @@ export default function DoctorsScreen() {
 
   const fetchDoctors = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/doctors?limit=100&verification_status=approved`);
+      const res = await fetch(`${API_BASE}/api/doctors?limit=100&verification_status=approved`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (res.ok) {
         const data = await res.json();
         setDoctors(data?.data?.items ?? data?.data ?? []);
       }
     } catch {}
     setLoading(false);
-  }, []);
+  }, [token]);
 
   useEffect(() => { fetchDoctors(); }, [fetchDoctors]);
 

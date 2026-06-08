@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Badge } from "@/components/Badge";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { API_BASE } from "@/contexts/AuthContext";
+import { API_BASE, useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 
 type DoctorDetail = {
@@ -60,6 +60,7 @@ export default function DoctorDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { token } = useAuth();
   const [doctor, setDoctor] = useState<DoctorDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -67,7 +68,9 @@ export default function DoctorDetailScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/doctors/${id}`);
+        const res = await fetch(`${API_BASE}/api/doctors/${id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         if (res.ok) {
           const data = await res.json();
           setDoctor(data?.data ?? null);
