@@ -1,0 +1,108 @@
+# TASK: Patient App — Phase 2: Scaffold Expo App
+
+## Context
+- Follow doctor-app structure EXACTLY
+- Location: artifacts/patient-app/
+- Auth endpoint: POST /api/auth/patient/login
+- Patient password: Patient@2025!
+
+## Step 1 — Read doctor-app structure first
+
+Show me exact content of:
+1. artifacts/doctor-app/package.json — dependencies list only
+2. artifacts/doctor-app/app.json — full file
+3. artifacts/doctor-app/contexts/AuthContext.tsx — full file
+4. artifacts/doctor-app/app/_layout.tsx — full file
+5. artifacts/doctor-app/app/login.tsx — full file
+
+Do not create anything yet.
+
+## Step 2 — Scaffold patient-app
+
+Copy doctor-app structure with these changes:
+
+### package.json
+- name: sahatghar-patient
+- Same dependencies as doctor-app
+
+### app.json
+- name: SahatGhar Patient
+- slug: sahatghar-patient
+- Same as doctor-app otherwise
+
+### Folder structure:
+artifacts/patient-app/
+  app/
+    _layout.tsx
+    login.tsx
+    (tabs)/
+      _layout.tsx
+      index.tsx        ← Dashboard
+      appointments.tsx
+      prescriptions.tsx
+      profile.tsx
+  components/
+  contexts/
+    AuthContext.tsx
+  hooks/
+  constants/
+    colors.ts
+  .env
+
+### AuthContext.tsx changes from doctor version:
+- API_BASE from EXPO_PUBLIC_API_URL ?? "http://localhost:3000"
+- Login endpoint: POST /api/auth/patient/login
+- Cookie name: patient_token
+- Me endpoint: GET /api/auth/patient/me
+- User type: PatientUser { id, email, fullName, phone }
+
+### login.tsx
+- Pre-fill: ayesha.khan@gmail.com / Patient@2025!
+- Title: "Patient Login"
+- Same UI as doctor login
+
+### (tabs)/index.tsx — Dashboard
+- Welcome message with patient name
+- 4 stat cards:
+  - Total Appointments
+  - Upcoming Appointments  
+  - Active Prescription
+  - Subscription Plan
+- Use real API: GET /api/patients/:id (with patient JWT)
+
+### (tabs)/appointments.tsx
+- List patient appointments
+- Use: GET /api/appointments?patient_id=:id
+- Show: doctor name, date, status badge
+
+### (tabs)/prescriptions.tsx
+- Simple screen: "Prescriptions coming soon"
+- Placeholder UI only
+
+### (tabs)/profile.tsx
+- Show: fullName, email, phone
+- Logout button
+
+## Step 3 — Add .env
+
+artifacts/patient-app/.env:
+EXPO_PUBLIC_API_URL=http://localhost:3000
+
+## Step 4 — Typecheck
+
+After scaffold:
+pnpm run typecheck
+
+Must be 0 errors in patient-app.
+
+## Step 5 — Test login screen
+
+Confirm login.tsx compiles and has correct endpoint.
+
+## RULES
+- Doctor-app pattern follow karo exactly
+- No new libraries — same deps as doctor-app
+- Read doctor-app files BEFORE creating anything
+- One file at a time
+- 0 TypeScript errors required
+- Do NOT touch api-server, admin panel, or doctor-app

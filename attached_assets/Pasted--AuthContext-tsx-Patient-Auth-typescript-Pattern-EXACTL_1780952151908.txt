@@ -1,0 +1,266 @@
+---
+
+## AuthContext.tsx — Patient Auth
+
+```typescript
+// Pattern: EXACTLY like doctor-app AuthContext
+// Changes:
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000"
+
+// PatientUser type:
+type PatientUser = {
+  id: string
+  email: string
+  fullName: string
+  phone: string | null
+  avatarUrl: string | null
+}
+
+// Login: POST /api/auth/patient/login
+// Me: GET /api/auth/patient/me  
+// Logout: POST /api/auth/patient/logout
+// Token storage: AsyncStorage key "patient_token"
+// Session restore on mount: Bearer token in Authorization header
+```
+
+---
+
+## Screen 1 — login.tsx
+
+Design:
+- Full screen sky blue gradient background (#0EA5E9 → #0284C7)
+- Center: SahatGhar logo (medical cross icon, white)
+- Urdu tagline: "صحت آپ کے گھر"
+- Email + Password inputs (white card, rounded)
+- "Login" button (white bg, blue text)
+- "Forgot Password?" link below button
+- Pre-fill: ayesha.khan@gmail.com / Patient@2025!
+- Error toast on wrong credentials
+- Loading spinner on submit
+
+---
+
+## Screen 2 — (tabs)/index.tsx — Home Dashboard
+
+Sections:
+
+### Header
+- "Assalam o Alaikum, [firstName]!" 
+- Today's date in Urdu format
+- Notification bell icon (top right)
+
+### Upcoming Appointment Card (prominent)
+- Next appointment from GET /api/appointments?patient_id=:id&status=confirmed&limit=1
+- Shows: Doctor name, specialty, date/time, video/phone icon
+- "Join Call" button (if today) or "View Details" button
+- If none: "No upcoming appointments — Book Now" card
+
+### Stats Row (4 cards)
+- Total Appointments (GET /api/appointments stats)
+- Active Subscription plan name
+- Doctors Consulted (unique doctors count)
+- Pending Reports
+
+### Quick Actions (2x2 grid)
+- 🔍 Find Doctor → navigates to doctors tab
+- 📅 My Appointments → navigates to appointments tab  
+- 💊 Prescriptions → navigates to prescriptions tab
+- 👤 My Profile → navigates to profile tab
+
+### Recent Appointments (last 3)
+- Each: doctor name, specialty, date, status badge
+- "View All" link to appointments tab
+
+---
+
+## Screen 3 — (tabs)/appointments.tsx — My Appointments
+
+Features:
+- Filter tabs: All | Upcoming | Completed | Cancelled
+- Each appointment card shows:
+  - Doctor avatar (initials if no photo)
+  - Dr. [Name] — [Specialty]
+  - Date & Time
+  - Type badge: Video / Phone / In-person
+  - Status badge: confirmed/completed/cancelled/pending
+  - "View Details" button
+- Pull to refresh
+- Empty state: "No appointments yet"
+- Data: GET /api/appointments?patient_id=:id
+
+---
+
+## Screen 4 — (tabs)/doctors.tsx — Find Doctors
+
+Features:
+- Search bar: search by name or specialty
+- Filter: by city (Karachi, Lahore, Islamabad, etc.)
+- Doctor cards grid:
+  - Avatar (initials)
+  - Dr. Name
+  - Specialty
+  - City
+  - Rating stars
+  - Fee: PKR [amount]
+  - "View Profile" button
+- Data: GET /api/doctors?limit=20&status=verified
+- Empty state if no results
+
+---
+
+## Screen 5 — (tabs)/prescriptions.tsx
+
+Features:
+- Header: "My Prescriptions"
+- List from completed appointments
+- Each card:
+  - Doctor name
+  - Date of consultation
+  - "View Prescription" button
+- If none: elegant empty state
+  "No prescriptions yet. Complete a consultation to receive prescriptions."
+- Data: GET /api/appointments?patient_id=:id&status=completed
+
+---
+
+## Screen 6 — (tabs)/profile.tsx — My Profile
+
+Sections:
+
+### Profile Header
+- Avatar circle (initials, sky blue bg)
+- Full name (large)
+- Email + phone below
+
+### Personal Info Card
+- Full Name
+- Email
+- Phone
+- City (if available)
+
+### Subscription Card
+- Current plan name
+- Status badge (active/expired)
+- Renewal date
+
+### Account Actions
+- Edit Profile (placeholder — show "Coming soon" toast)
+- Change Password (placeholder)
+- Help & Support (placeholder)
+- Logout (red, with confirmation alert)
+
+### App Info
+- Version: 1.0.0
+- "Powered by SahatGhar"
+
+---
+
+## Screen 7 — appointment/[id].tsx — Detail
+
+Sections:
+- Doctor info (name, specialty, avatar)
+- Appointment date/time
+- Type (video/phone)
+- Status badge
+- Consultation notes (if completed)
+- Prescription section (if available)
+- Cancel button (if upcoming, with confirmation)
+- Data: GET /api/appointments/:id
+
+---
+
+## Screen 8 — doctor/[id].tsx — Doctor Profile
+
+Sections:
+- Header: avatar, name, specialty, city
+- Rating + reviews count
+- About/Bio section
+- Qualifications list
+- Fee: PKR [amount]
+- Availability status
+- "Book Appointment" button (placeholder — "Coming soon" toast)
+- Data: GET /api/doctors/:id
+
+---
+
+## Components
+
+### AppointmentCard.tsx
+Props: appointment object, onPress
+Shows: doctor name, date, status badge, type icon
+
+### DoctorCard.tsx  
+Props: doctor object, onPress
+Shows: avatar initials, name, specialty, city, rating, fee
+
+### StatCard.tsx
+Props: title, value, icon, color
+Shows: colored icon card with number
+
+### Badge.tsx
+Props: status: "confirmed"|"completed"|"cancelled"|"pending"|"verified"
+Colors:
+- confirmed → blue
+- completed → green
+- cancelled → red
+- pending → yellow
+- verified → green
+
+### LoadingSpinner.tsx
+- Centered sky blue spinner
+- Optional message prop
+
+---
+
+## colors.ts
+
+```typescript
+export const Colors = {
+  primary: '#0EA5E9',
+  primaryDark: '#0284C7',
+  primaryLight: '#E0F2FE',
+  success: '#10B981',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  text: '#1E293B',
+  textSecondary: '#64748B',
+  background: '#F8FAFC',
+  card: '#FFFFFF',
+  border: '#E2E8F0',
+  white: '#FFFFFF',
+}
+```
+
+---
+
+## package.json — same as doctor-app
+
+Copy exact dependencies from doctor-app/package.json.
+Change only:
+- name: "sahatghar-patient"
+
+---
+
+## app.json
+
+```json
+{
+  "expo": {
+    "name": "SahatGhar Patient",
+    "slug": "sahatghar-patient",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0EA5E9"
+    },
+    "ios": { "supportsTablet": false },
+    "android": { "adaptiveIcon": { "backgroundColor": "#0EA5E9" } }
+  }
+}
+```
+
+---
+
+## .env

@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/patient/"
+title = "SahatGhar Patient App"
+version = "1.0.0"
+id = "artifacts/patient-app"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/patient/" ]
+localPort = 20913
+
+[services.development]
+run = "pnpm --filter @workspace/patient-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/patient-app", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/patient-app", "run", "serve" ]
+
+[services.env]
+PORT = "20913"
+BASE_PATH = "/patient/"
