@@ -52,6 +52,7 @@ async function main() {
 
   // ── DOCTORS ───────────────────────────────────────────────────────────────
   const docPassHash = await bcrypt.hash("Doctor@2025!", 12);
+  const patPassHash = await bcrypt.hash("Patient@2025!", 12);
   const doctorData = [
     { fullName: "Dr. Ayesha Noor", email: "ayesha.noor@sahatghar.pk", specialty: "Cardiology", city: "Lahore", pmdcNumber: "79484-P", verificationStatus: "VERIFIED" as const, fee: "1500", rating: "4.8", appts: 156, featured: true },
     { fullName: "Dr. Usman Tariq", email: "usman.tariq@sahatghar.pk", specialty: "General Medicine", city: "Karachi", pmdcNumber: "454321-P", verificationStatus: "PENDING" as const, fee: "800", rating: null, appts: 0, featured: false },
@@ -111,7 +112,7 @@ async function main() {
   for (let i = 0; i < patientNames.length; i++) {
     const name = patientNames[i];
     const email = `${name.toLowerCase().replace(/\s+/g, ".")}@gmail.com`;
-    const userRow = await db.insert(usersTable).values({ email, fullName: name, passwordHash: docPassHash, role: "PATIENT", status: "ACTIVE" }).returning();
+    const userRow = await db.insert(usersTable).values({ email, fullName: name, passwordHash: patPassHash, role: "PATIENT", status: "ACTIVE" }).returning();
     const patRow = await db.insert(patientsTable).values({
       userId: userRow[0].id, fullName: name, email,
       phone: `+92-3${String(Math.floor(100000000 + Math.random() * 900000000))}`,

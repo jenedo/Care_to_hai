@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { db, usersTable, adminUsersTable, doctorsTable } from "../lib/db";
+import { db, usersTable, adminUsersTable, doctorsTable, patientsTable } from "../lib/db";
 import { signToken } from "../lib/jwt";
 import { requireAuth } from "../middlewares/auth";
 import { writeAudit } from "../lib/audit";
@@ -185,6 +185,89 @@ router.get("/auth/doctor/me", async (req, res): Promise<void> => {
     return;
   }
   res.json({ success: true, data: doctor[0] });
+});
+
+// ── PATIENT AUTH ──────────────────────────────────────────────────────────────
+
+router.post("/auth/patient/login", async (req, res): Promise<void> => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    res.status(400).json({ success: false, error: { code: "VALIDATION_ERROR", message: "Email and password required" } });
+    return;
+  }
+
+  const patient = await db.select().from(patientsTable).where(eq(patientsTable.email, email.toLowerCase())).limit(1);
+  if (!patient.length) {
+    res.status(401).json({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password" } });
+    return;
+  }
+
+  const user = await db.select().from(usersTable).where(eq(usersTable.id, patient[0].userId!)).limit(1);
+  const passwordHash = user.length ? (user[0] as any).passwordHash : null;
+
+  if (!passwordHash) {
+    res.status(401).json({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password" } });
+    return;
+  }
+
+  const valid = await bcrypt.compare(password, passwordHash);
+  if (!valid) {
+    res.status(401).json({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password" } });
+    return;
+  }
+
+  const token = signToken({
+    userId: patient[0].userId!,
+    adminId: "",
+    email: patient[0].email ?? "",
+    fullName: patient[0].fullName,
+    role: "PATIENT",
+  });
+
+  res.cookie("patient_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.json({
+    success: true,
+    data: {
+      token,
+      patient: {
+        id: patient[0].id,
+        email: patient[0].email,
+        fullName: patient[0].fullName,
+        phone: patient[0].phone,
+      },
+    },
+  });
+});
+
+router.get("/auth/patient/me", async (req, res): Promise<void> => {
+  const token = req.cookies?.patient_token || req.headers.authorization?.replace("Bearer ", "");
+  if (!token) {
+    res.status(401).json({ success: false, error: { code: "UNAUTHORIZED", message: "Not authenticated" } });
+    return;
+  }
+  const { verifyToken } = await import("../lib/jwt");
+  const payload = verifyToken(token);
+  if (!payload || payload.role !== "PATIENT") {
+    res.status(401).json({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid token" } });
+    return;
+  }
+  const patient = await db.select().from(patientsTable).where(eq(patientsTable.userId, payload.userId)).limit(1);
+  if (!patient.length) {
+    res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Patient not found" } });
+    return;
+  }
+  res.json({ success: true, data: patient[0] });
+});
+
+router.post("/auth/patient/logout", (req, res) => {
+  res.clearCookie("patient_token");
+  res.json({ success: true });
 });
 
 export default router;
