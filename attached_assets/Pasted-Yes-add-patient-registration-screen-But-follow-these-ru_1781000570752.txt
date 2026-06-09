@@ -1,0 +1,90 @@
+Yes, add patient registration screen.
+But follow these rules strictly:
+
+## TASK: Patient Registration Screen
+
+## Step 1 — Read first
+
+Read these files before writing anything:
+1. artifacts/patient-app/app/login.tsx — full file
+2. artifacts/api-server/src/routes/patients.ts — full file
+3. lib/db/src/schema/patients.ts — full file
+
+Report what you found. Do not code yet.
+
+## Step 2 — Backend first: Add POST /api/auth/patient/register
+
+Add to artifacts/api-server/src/routes/auth.ts:
+
+POST /auth/patient/register
+Body: {
+  fullName: string,
+  email: string,
+  password: string,
+  phone: string
+}
+
+Logic:
+- Validate all fields present
+- Check email not already in usersTable
+- bcrypt.hash(password, 12)
+- Insert into usersTable: { email, passwordHash, role: "PATIENT", status: "ACTIVE" }
+- Insert into patientsTable: { userId, fullName, email, phone }
+- Auto-login: sign JWT same as patient login
+- Set httpOnly cookie "patient_token"
+- Return: { success: true, data: { token, patient: { id, email, fullName, phone } } }
+- If email exists: 409 { success: false, error: { code: "EMAIL_EXISTS", message: "Account already exists" } }
+
+Test with curl before moving to frontend:
+curl -X POST http://localhost:3000/api/auth/patient/register \
+  -H "Content-Type: application/json" \
+  -d '{"fullName":"Test Patient","email":"test@patient.com","password":"Test@1234","phone":"+92-3001234567"}' \
+  -s
+
+Expected: HTTP 201, token, patient object
+
+## Step 3 — Frontend: Register screen
+
+File: artifacts/patient-app/app/register.tsx
+
+Design (same sky blue style as login.tsx):
+- Back arrow to login
+- Title: "Create Account"
+- Urdu subtitle: "نیا اکاؤنٹ بنائیں"
+- 4 inputs (white card):
+  - Full Name
+  - Email
+  - Phone (+92 format)
+  - Password (with show/hide toggle)
+- "Create Account" button (sky blue)
+- "Already have account? Login" link at bottom
+- Loading spinner on submit
+- Error toast on failure (email exists, validation)
+- On success: auto-navigate to tabs (already logged in)
+
+## Step 4 — Wire register link in login.tsx
+
+In login.tsx, add below "Forgot Password?":
+"New patient? Create account →"
+Navigate to /register
+
+## Step 5 — Typecheck
+
+pnpm run typecheck
+
+Must be 0 errors.
+
+## Step 6 — Test full flow
+
+curl register → confirm 201
+curl login with new email → confirm 200
+Report both outputs.
+
+## RULES
+- Backend FIRST, then frontend
+- Read before every edit
+- No mock data
+- 0 TypeScript errors required
+- Do NOT touch admin panel
+- Do NOT touch doctor-app
+- Do NOT reseed database

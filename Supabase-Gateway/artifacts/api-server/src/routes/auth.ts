@@ -270,4 +270,76 @@ router.post("/auth/patient/logout", (req, res) => {
   res.json({ success: true });
 });
 
+router.post("/auth/patient/register", async (req, res): Promise<void> => {
+  const { fullName, email, password, phone } = req.body;
+
+  if (!fullName?.trim() || !email?.trim() || !password?.trim() || !phone?.trim()) {
+    res.status(400).json({
+      success: false,
+      error: { code: "VALIDATION_ERROR", message: "Full name, email, phone and password are required" },
+    });
+    return;
+  }
+
+  const existing = await db.select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.email, email.toLowerCase().trim()))
+    .limit(1);
+
+  if (existing.length) {
+    res.status(409).json({
+      success: false,
+      error: { code: "EMAIL_EXISTS", message: "An account with this email already exists" },
+    });
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  const [newUser] = await db.insert(usersTable).values({
+    email: email.toLowerCase().trim(),
+    fullName: fullName.trim(),
+    passwordHash,
+    role: "PATIENT",
+    status: "ACTIVE",
+    phone: phone.trim(),
+  }).returning();
+
+  const [newPatient] = await db.insert(patientsTable).values({
+    userId: newUser.id,
+    fullName: fullName.trim(),
+    email: email.toLowerCase().trim(),
+    phone: phone.trim(),
+    status: "ACTIVE",
+  }).returning();
+
+  const token = signToken({
+    userId: newUser.id,
+    adminId: "",
+    email: newUser.email,
+    fullName: newUser.fullName,
+    role: "PATIENT",
+  });
+
+  res.cookie("patient_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.status(201).json({
+    success: true,
+    data: {
+      token,
+      patient: {
+        id: newPatient.id,
+        email: newPatient.email,
+        fullName: newPatient.fullName,
+        phone: newPatient.phone,
+      },
+    },
+  });
+});
+
 export default router;
