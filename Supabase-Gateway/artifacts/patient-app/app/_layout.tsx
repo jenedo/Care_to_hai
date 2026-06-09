@@ -31,9 +31,10 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
     const inTabs = segments[0] === "(tabs)";
+    const inAuth = segments[0] === "login" || segments[0] === "register";
     if (!isLoggedIn && inTabs) {
       router.replace("/login");
-    } else if (isLoggedIn && !inTabs) {
+    } else if (isLoggedIn && inAuth) {
       router.replace("/(tabs)");
     }
   }, [isLoggedIn, isLoading, segments]);
@@ -43,6 +44,7 @@ function RootLayoutNav() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="register" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="appointment/[id]"

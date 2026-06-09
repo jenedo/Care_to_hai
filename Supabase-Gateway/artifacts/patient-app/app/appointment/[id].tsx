@@ -21,12 +21,13 @@ type AppointmentDetail = {
   type: string;
   scheduled_at?: string;
   date_time?: string;
-  fee?: number;
-  notes?: string;
+  start_time?: string;
+  amount?: number;
+  notes?: string | null;
   doctor_name?: string;
   doctor_specialty?: string;
   patient_name?: string;
-  patient_phone?: string;
+  cancellation_reason?: string | null;
 };
 
 function formatDateTime(dt?: string) {
@@ -124,7 +125,7 @@ export default function AppointmentDetailScreen() {
           </View>
           <View style={styles.headerInfo}>
             <Text style={styles.headerName} numberOfLines={1}>
-              {appointment.doctor_name ? `Dr. ${appointment.doctor_name}` : "Doctor"}
+              {appointment.doctor_name ?? "Doctor"}
             </Text>
             {appointment.doctor_specialty && (
               <Text style={styles.headerSpecialty}>{appointment.doctor_specialty}</Text>
@@ -146,11 +147,11 @@ export default function AppointmentDetailScreen() {
             label="Type"
             value={appointment.type?.charAt(0).toUpperCase() + appointment.type?.slice(1)}
           />
-          {appointment.fee != null && (
+          {appointment.amount != null && (
             <DetailRow
               icon="credit-card"
               label="Consultation Fee"
-              value={`PKR ${Number(appointment.fee).toLocaleString()}`}
+              value={`PKR ${Number(appointment.amount).toLocaleString()}`}
               accent={colors.primary}
             />
           )}

@@ -27,15 +27,15 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchAppointments = async () => {
-    if (!patient || !token) return;
+    if (!patient || !token) { setLoading(false); return; }
     try {
       const res = await fetch(
-        `${API_BASE}/api/appointments?patient_id=${patient.id}&limit=5&order=desc`,
+        `${API_BASE}/api/appointments?patient_id=${patient.id}&limit=5`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.ok) {
         const data = await res.json();
-        setAppointments(data?.data?.items ?? data?.data ?? []);
+        setAppointments(data?.data ?? []);
       }
     } catch {}
     setLoading(false);
@@ -58,6 +58,7 @@ export default function HomeScreen() {
   };
 
   const firstName = patient?.fullName?.split(" ")[0] ?? "there";
+  const upcomingAppt = appointments.find((a) => a.status === "confirmed" || a.status === "pending");
 
   return (
     <ScrollView
@@ -68,7 +69,7 @@ export default function HomeScreen() {
     >
       <View style={[styles.heroSection, { backgroundColor: colors.navBackground }]}>
         <View style={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 20 }}>
-          <Text style={styles.greeting}>Hello, {firstName} 👋</Text>
+          <Text style={styles.greeting}>Assalam o Alaikum, {firstName}! 👋</Text>
           <Text style={styles.heroSubtitle}>How are you feeling today?</Text>
         </View>
       </View>
@@ -96,6 +97,16 @@ export default function HomeScreen() {
         />
       </View>
 
+      {upcomingAppt && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Next Appointment</Text>
+          <AppointmentCard
+            item={upcomingAppt}
+            onPress={() => router.push(`/appointment/${upcomingAppt.id}`)}
+          />
+        </View>
+      )}
+
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Appointments</Text>
@@ -119,7 +130,7 @@ export default function HomeScreen() {
               style={[styles.bookBtn, { backgroundColor: colors.primary }]}
               onPress={() => router.push("/(tabs)/doctors")}
             >
-              <Text style={[styles.bookBtnText, { color: colors.primaryForeground }]}>Find a Doctor</Text>
+              <Text style={[styles.bookBtnText, { color: "#fff" }]}>Find a Doctor</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -176,12 +187,12 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { gap: 0 },
   heroSection: { marginBottom: 0 },
-  greeting: { fontSize: 24, fontFamily: "Inter_700Bold", color: "#fff" },
+  greeting: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#fff" },
   heroSubtitle: { fontSize: 14, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.8)", marginTop: 4 },
   statsRow: { flexDirection: "row", gap: 12, paddingHorizontal: 16, marginTop: -12, marginBottom: 20 },
   section: { paddingHorizontal: 16, marginBottom: 24 },
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
-  sectionTitle: { fontSize: 17, fontFamily: "Inter_600SemiBold" },
+  sectionTitle: { fontSize: 17, fontFamily: "Inter_600SemiBold", marginBottom: 12 },
   seeAll: { fontSize: 14, fontFamily: "Inter_500Medium" },
   loadingRow: { paddingVertical: 32, alignItems: "center" },
   loadingText: { fontSize: 14 },

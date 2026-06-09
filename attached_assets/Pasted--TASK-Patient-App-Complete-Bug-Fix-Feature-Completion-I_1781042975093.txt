@@ -1,0 +1,225 @@
+# TASK: Patient App — Complete Bug Fix + Feature Completion
+
+## IMPORTANT: Read ALL files first before touching anything
+
+Read these files completely:
+1. artifacts/patient-app/app/(tabs)/doctors.tsx
+2. artifacts/patient-app/app/(tabs)/appointments.tsx
+3. artifacts/patient-app/app/(tabs)/prescriptions.tsx
+4. artifacts/patient-app/app/(tabs)/profile.tsx
+5. artifacts/patient-app/app/(tabs)/index.tsx
+6. artifacts/patient-app/app/doctor/[id].tsx
+7. artifacts/patient-app/components/DoctorCard.tsx
+8. artifacts/patient-app/components/AppointmentCard.tsx
+9. artifacts/patient-app/contexts/AuthContext.tsx
+
+Then read API response shape:
+```bash
+# Get real API responses to know exact field names
+TOKEN=$(curl -s -X POST https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev/api/auth/patient/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ayesha.khan@gmail.com","password":"Patient@2025!"}' \
+  | node -e "const d=require('fs').readFileSync('/dev/stdin','utf8');console.log(JSON.parse(d).data.token)")
+
+# Doctor list fields
+curl "https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev/api/doctors?limit=2" \
+  -H "Authorization: Bearer $TOKEN" -s
+
+# Single doctor fields  
+curl "https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev/api/doctors/FIRST_DOCTOR_ID" \
+  -H "Authorization: Bearer $TOKEN" -s
+
+# Appointments fields
+curl "https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev/api/appointments?limit=2" \
+  -H "Authorization: Bearer $TOKEN" -s
+
+# Patient profile fields
+curl "https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev/api/patients/PATIENT_ID" \
+  -H "Authorization: Bearer $TOKEN" -s
+```
+
+Report ALL field names from API before writing any code.
+
+---
+
+## BUG FIXES (fix these first)
+
+### Bug 1 — DoctorCard: fullName undefined crash
+Already fixed with `(item.fullName ?? item.name ?? "D").charAt(0)`
+But also fix ALL other field references:
+- Check if API returns `name` or `fullName` for doctors
+- Fix every field: name, specialty, city, fee, rating in DoctorCard.tsx
+- Use actual API field names
+
+### Bug 2 — Doctor profile page redirects to home
+File: artifacts/patient-app/app/doctor/[id].tsx
+Problem: route not working, redirects home
+Fix:
+- Check _layout.tsx has doctor/[id] route registered
+- Check fetch URL is correct
+- Check all field names match API response
+- Add proper error handling
+
+### Bug 3 — Appointments empty or broken
+File: artifacts/patient-app/app/(tabs)/appointments.tsx
+Fix:
+- Use correct patient_id from auth context
+- API call: GET /api/appointments?patient_id=:id
+- Fix all field names to match real API response
+- Show: doctor name, date, time, status, type
+
+### Bug 4 — Prescriptions not working
+File: artifacts/patient-app/app/(tabs)/prescriptions.tsx
+Fix:
+- Fetch completed appointments
+- Show prescription info from appointment data
+- Fix all field references
+
+### Bug 5 — Profile not editable
+File: artifacts/patient-app/app/(tabs)/profile.tsx
+Fix: Add working Edit Profile:
+- Tap edit → fields become editable TextInput
+- Save button appears
+- PATCH /api/patients/:id with { fullName, phone }
+- Success toast on save
+- Cancel button to discard changes
+
+---
+
+## FEATURE ADDITIONS
+
+### Feature 1 — Find Doctor (doctors.tsx) — Make it professional
+
+Complete redesign of doctor cards:
+- Avatar circle with initials (large, colored)
+- Dr. [Full Name] — bold, large
+- Specialty badge (colored pill)
+- City with 📍 icon
+- Rating: ⭐ 4.8 (23 reviews)
+- Fee: PKR 1,500 per consultation
+- Online/Offline status dot (green/gray)
+- "View Profile" button — sky blue
+
+Search bar:
+- Search by name OR specialty
+- Real-time filter as user types
+
+City filter chips:
+- All | Karachi | Lahore | Islamabad | Multan | Peshawar
+- Tap to filter
+
+### Feature 2 — Doctor Profile [id].tsx — Full professional page
+
+Complete redesign:
+- Hero section: large avatar (initials), name, specialty, city
+- Rating row: stars + review count
+- Status badge: VERIFIED (green) / PENDING (yellow)
+- Fee card: "PKR [amount] per consultation"
+- About section: bio text (if available, else "No bio available")
+- Qualifications: MBBS, FCPS etc as chips
+- Experience: X years (if available)
+- PMDC number
+- Online availability status
+- "Book Appointment" button (sky blue, full width)
+  → show Alert: "Booking coming soon! Call us at 0300-SAHATGHAR"
+
+Fix navigation:
+- Ensure /doctor/[id] route works
+- Use useLocalSearchParams() to get id
+- Fetch GET /api/doctors/:id with correct URL
+
+### Feature 3 — Appointments (appointments.tsx) — Complete
+
+Filter tabs: All | Upcoming | Completed | Cancelled
+
+Each appointment card:
+- Doctor name + specialty
+- Date: "Mon, 10 Jun 2026"
+- Time: "3:00 PM"  
+- Type icon: 📹 Video / 📞 Phone
+- Status badge (colored)
+- Fee: PKR [amount]
+- "View Details" button → /appointment/[id]
+
+Pull to refresh (RefreshControl)
+Empty state per filter tab
+
+### Feature 4 — Appointment Detail [id].tsx
+
+Complete info page:
+- Doctor: name, specialty, avatar
+- Date & Time (formatted)
+- Consultation type
+- Status badge
+- Fee
+- Notes (if completed)
+- Cancel button (if status=confirmed/pending)
+  → Confirmation alert before cancel
+  → PATCH /api/appointments/:id with {status: "cancelled"}
+
+### Feature 5 — Prescriptions (prescriptions.tsx)
+
+Fetch completed appointments as prescriptions:
+- Doctor name
+- Date of consultation  
+- Diagnosis/notes preview
+- "View Details" → /appointment/[id]
+- Empty state: "No prescriptions yet"
+
+### Feature 6 — Home Dashboard (index.tsx) — Complete
+
+Fix all broken sections:
+- Greeting: "Assalam o Alaikum, [firstName]!"
+- Upcoming appointment card (real data)
+- Stats: use real API data
+- Recent appointments: last 3 (real data)
+- Quick action buttons working
+
+### Feature 7 — Profile (profile.tsx) — Complete
+
+Sections:
+- Avatar (initials, sky blue circle)
+- Full name, email, phone
+- Edit Profile (inline editing)
+- Subscription info (from API)
+- Logout with confirmation
+
+---
+
+## RULES
+
+1. Run API curls FIRST — confirm exact field names
+2. Fix bugs ONE FILE AT A TIME
+3. After every file fix: check for TypeScript errors
+4. Use EXACT field names from API response
+5. No mock/hardcoded data anywhere
+6. Every screen needs: loading state, error state, empty state
+7. After ALL fixes:
+```bash
+pnpm run typecheck
+```
+Must be 0 errors
+
+8. Test these curl commands after fixes:
+```bash
+# Doctor profile
+curl "https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev/api/doctors/DOCTOR_ID" -s
+
+# Patient profile  
+curl "https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev/api/patients/PATIENT_ID" \
+  -H "Authorization: Bearer TOKEN" -s
+
+# Cancel appointment
+curl -X PATCH "https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev/api/appointments/APPT_ID" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer TOKEN" \
+  -d '{"status":"cancelled"}' -s
+```
+
+9. Do NOT touch:
+   - api-server routes
+   - admin panel
+   - doctor-app
+   - database schema
+
+10. Report after each file what was fixed

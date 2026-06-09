@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-export const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "https://sahatghar-api.replit.app";
+export const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "https://7d7ef1b7-2a8e-4474-8de3-c97e34e0388c-00-2bs4zl1xpqyi1.pike.replit.dev";
 
 export type PatientUser = {
   id: string;

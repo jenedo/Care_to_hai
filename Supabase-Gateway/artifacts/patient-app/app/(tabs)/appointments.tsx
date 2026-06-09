@@ -16,8 +16,16 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { API_BASE, useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 
-const FILTERS = ["all", "pending", "confirmed", "completed", "cancelled"] as const;
-type Filter = (typeof FILTERS)[number];
+const FILTERS = [
+  { key: "all", label: "All" },
+  { key: "upcoming", label: "Upcoming" },
+  { key: "completed", label: "Completed" },
+  { key: "cancelled", label: "Cancelled" },
+] as const;
+
+type FilterKey = (typeof FILTERS)[number]["key"];
+
+const UPCOMING_STATUSES = ["pending", "confirmed"];
 
 export default function AppointmentsScreen() {
   const colors = useColors();
@@ -28,21 +36,20 @@ export default function AppointmentsScreen() {
   const [appointments, setAppointments] = useState<AppointmentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
 
   const fetchAppointments = useCallback(async () => {
-    if (!patient || !token) return;
+    if (!patient || !token) { setLoading(false); return; }
     try {
       const url = new URL(`${API_BASE}/api/appointments`);
       url.searchParams.set("patient_id", patient.id);
-      url.searchParams.set("limit", "50");
-      url.searchParams.set("order", "desc");
+      url.searchParams.set("limit", "100");
       const res = await fetch(url.toString(), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
-        setAppointments(data?.data?.items ?? data?.data ?? []);
+        setAppointments(data?.data ?? []);
       }
     } catch {}
     setLoading(false);
@@ -58,7 +65,9 @@ export default function AppointmentsScreen() {
 
   const filtered = filter === "all"
     ? appointments
-    : appointments.filter((a) => a.status === filter);
+    : filter === "upcoming"
+      ? appointments.filter((a) => UPCOMING_STATUSES.includes(a.status))
+      : appointments.filter((a) => a.status === filter);
 
   if (loading) return <LoadingSpinner />;
 
@@ -72,24 +81,24 @@ export default function AppointmentsScreen() {
       >
         {FILTERS.map((f) => (
           <TouchableOpacity
-            key={f}
+            key={f.key}
             style={[
               styles.filterChip,
               {
-                backgroundColor: filter === f ? colors.primary : colors.card,
-                borderColor: filter === f ? colors.primary : colors.border,
+                backgroundColor: filter === f.key ? colors.primary : colors.card,
+                borderColor: filter === f.key ? colors.primary : colors.border,
               },
             ]}
-            onPress={() => setFilter(f)}
+            onPress={() => setFilter(f.key)}
             activeOpacity={0.8}
           >
             <Text
               style={[
                 styles.filterText,
-                { color: filter === f ? colors.primaryForeground : colors.mutedForeground },
+                { color: filter === f.key ? "#fff" : colors.mutedForeground },
               ]}
             >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
+              {f.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -107,7 +116,11 @@ export default function AppointmentsScreen() {
           <EmptyState
             icon="calendar"
             title="No appointments"
-            subtitle={filter === "all" ? "Book a consultation with a doctor to get started." : `No ${filter} appointments.`}
+            subtitle={
+              filter === "all"
+                ? "Book a consultation with a doctor to get started."
+                : `No ${filter === "upcoming" ? "upcoming" : filter} appointments.`
+            }
             actionLabel={filter === "all" ? "Find a Doctor" : undefined}
             onAction={filter === "all" ? () => router.push("/(tabs)/doctors") : undefined}
           />
@@ -129,7 +142,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   filterBar: { maxHeight: 56, borderBottomWidth: 1 },
   filterContent: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 10 },
-  filterChip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
+  filterChip: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
   filterText: { fontSize: 13, fontFamily: "Inter_500Medium" },
   list: { flex: 1 },
   listContent: { padding: 16 },
