@@ -1,0 +1,29 @@
+﻿[
+  {
+    "doctorId": "PASTE_DOCTOR_ID_HERE",
+    "planTier": "BASIC",
+    "services": {
+      "VIDEO": { "payoutAmount": "300.00", "maxDailyPlanConsults": 10 },
+      "AUDIO": { "payoutAmount": "120.00", "maxDailyPlanConsults": 15 },
+      "CHAT": { "payoutAmount": "40.00", "maxDailyPlanConsults": 25 }
+    }
+  },
+  {
+    "doctorId": "PASTE_DOCTOR_ID_HERE",
+    "planTier": "STANDARD",
+    "services": {
+      "VIDEO": { "payoutAmount": "320.00", "maxDailyPlanConsults": 10 },
+      "AUDIO": { "payoutAmount": "150.00", "maxDailyPlanConsults": 15 },
+      "CHAT": { "payoutAmount": "50.00", "maxDailyPlanConsults": 25 }
+    }
+  },
+  {
+    "doctorId": "PASTE_DOCTOR_ID_HERE",
+    "planTier": "PREMIUM",
+    "services": {
+      "VIDEO": { "payoutAmount": "350.00", "maxDailyPlanConsults": 10 },
+      "AUDIO": { "payoutAmount": "180.00", "maxDailyPlanConsults": 15 },
+      "CHAT": { "payoutAmount": "60.00", "maxDailyPlanConsults": 25 }
+    }
+  }
+]

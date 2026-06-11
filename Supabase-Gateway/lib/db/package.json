@@ -10,7 +10,7 @@
   "scripts": {
     "push": "drizzle-kit push --config ./drizzle.config.ts",
     "push-force": "drizzle-kit push --force --config ./drizzle.config.ts",
-    "build": "tsc -p tsconfig.json", "plans:upsert": "node ./scripts/upsert-subscription-plans.mjs"
+    "build": "tsc -p tsconfig.json", "plans:upsert": "node ./scripts/upsert-subscription-plans.mjs", "doctors:list-verified": "node ./scripts/list-verified-doctors.mjs", "doctor-pool:upsert": "node ./scripts/upsert-doctor-plan-pool.mjs"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",
@@ -24,4 +24,5 @@
     "drizzle-kit": "^0.31.10"
   }
 }
+
 
