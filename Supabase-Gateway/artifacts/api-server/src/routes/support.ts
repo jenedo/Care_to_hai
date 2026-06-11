@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { eq, and, desc, ilike, or } from "drizzle-orm";
 import { db, supportTicketsTable, ticketRepliesTable } from "../lib/db";
 import { requireAuth, requireRole, SUPPORT_AND_ABOVE } from "../middlewares/auth";
@@ -100,7 +100,7 @@ router.post("/support/tickets/:id/reply", requireRole(...SUPPORT_AND_ABOVE), asy
   const reply = await db.insert(ticketRepliesTable).values({
     ticketId: (req.params.id as string),
     authorId: req.admin!.userId,
-    authorName: req.admin!.fullName,
+    authorName: req.admin?.fullName ?? "Unknown Admin",
     authorRole: "ADMIN",
     message,
     isInternal: isInternal ? "true" : "false",
@@ -112,3 +112,4 @@ router.post("/support/tickets/:id/reply", requireRole(...SUPPORT_AND_ABOVE), asy
 });
 
 export default router;
+
