@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "@workspace/db",
   "version": "0.0.0",
   "private": true,
@@ -10,7 +10,7 @@
   "scripts": {
     "push": "drizzle-kit push --config ./drizzle.config.ts",
     "push-force": "drizzle-kit push --force --config ./drizzle.config.ts",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json", "plans:upsert": "node ./scripts/upsert-subscription-plans.mjs"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",
@@ -24,3 +24,4 @@
     "drizzle-kit": "^0.31.10"
   }
 }
+
