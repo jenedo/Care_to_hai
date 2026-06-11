@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+﻿import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import authRouter from "./auth";
 import dashboardRouter from "./dashboard";
@@ -11,6 +11,7 @@ import payoutsRouter from "./payouts";
 import reviewsRouter from "./reviews";
 import clinicsRouter from "./clinics";
 import subscriptionsRouter from "./subscriptions";
+import subscriptionUsageRouter from "./subscriptionUsage";
 import supportRouter from "./support";
 import auditRouter from "./audit";
 import adminUsersRouter from "./adminUsers";
@@ -30,9 +31,11 @@ router.use(payoutsRouter);
 router.use(reviewsRouter);
 router.use(clinicsRouter);
 router.use(subscriptionsRouter);
+router.use(subscriptionUsageRouter);
 router.use(supportRouter);
 router.use(auditRouter);
 router.use(adminUsersRouter);
 router.use(notificationsRouter);
 
 export default router;
+
