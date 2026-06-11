@@ -1,0 +1,113 @@
+﻿name: Neon Preview Database
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: neon-preview-db-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  create_neon_branch:
+    name: Create Neon Preview Branch
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    outputs:
+      branch_name: ${{ steps.branch.outputs.branch_name }}
+      branch_id: ${{ steps.create_branch.outputs.branch_id }}
+
+    steps:
+      - name: Build safe Neon branch name
+        id: branch
+        shell: bash
+        run: |
+          RAW_BRANCH="${{ github.event.pull_request.head.ref }}"
+          SAFE_BRANCH="$(echo "$RAW_BRANCH" | tr '/ _' '---' | tr -cd '[:alnum:]-' | cut -c1-50)"
+          echo "branch_name=preview/pr-${{ github.event.pull_request.number }}-${SAFE_BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Get branch expiration date
+        shell: bash
+        run: echo "EXPIRES_AT=$(date -u --date '+14 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+
+      - name: Create Neon branch
+        id: create_branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch_name: ${{ steps.branch.outputs.branch_name }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          expires_at: ${{ env.EXPIRES_AT }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: Supabase-Gateway/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: Supabase-Gateway
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply Drizzle schema to preview DB
+        working-directory: Supabase-Gateway
+        run: pnpm --filter @workspace/db run push
+        env:
+          DATABASE_URL: ${{ steps.create_branch.outputs.db_url }}
+
+      - name: Typecheck API
+        working-directory: Supabase-Gateway
+        run: pnpm --filter @workspace/api-server typecheck
+        env:
+          DATABASE_URL: ${{ steps.create_branch.outputs.db_url_pooled }}
+
+      - name: Build API
+        working-directory: Supabase-Gateway
+        run: pnpm --filter @workspace/api-server build
+        env:
+          DATABASE_URL: ${{ steps.create_branch.outputs.db_url_pooled }}
+
+  delete_neon_branch:
+    name: Delete Neon Preview Branch
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build safe Neon branch name
+        id: branch
+        shell: bash
+        run: |
+          RAW_BRANCH="${{ github.event.pull_request.head.ref }}"
+          SAFE_BRANCH="$(echo "$RAW_BRANCH" | tr '/ _' '---' | tr -cd '[:alnum:]-' | cut -c1-50)"
+          echo "branch_name=preview/pr-${{ github.event.pull_request.number }}-${SAFE_BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Delete Neon branch by name
+        uses: neondatabase/delete-branch-by-name-action@main
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch_name: ${{ steps.branch.outputs.branch_name }}
+          api_key: ${{ secrets.NEON_API_KEY }}
