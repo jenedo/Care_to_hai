@@ -1,0 +1,4 @@
+- [Supabase connection secrets format](supabase-secrets-format.md) — secrets were saved with assignment syntax; extractUrl() strips NAME="..." wrapper before passing to pg.
+- [Supabase POOLER_URL has wrong password](supabase-pooler-wrong-password.md) — POOLER_URL was saved with different (wrong) password; always prefer SUPABASE_DATABASE_URL first.
+- [Mobile email-login uses bcrypt not Supabase Auth](mobile-email-login-bcrypt.md) — existing doctor accounts have bcrypt hashes only; email-login must use comparePassword(), not supabase.auth.signInWithPassword().
+- [ws package required for Supabase on Node 20](supabase-node20-ws.md) — @supabase/realtime-js needs ws transport on Node.js <22; pass ws as realtime.transport option.

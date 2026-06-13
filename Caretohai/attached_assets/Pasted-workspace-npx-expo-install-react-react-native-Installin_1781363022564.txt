@@ -1,0 +1,254 @@
+workspace$ npx expo install react react-native
+› Installing 2 SDK 56.0.0 compatible native modules using npm
+> npm install
+
+> asaancare@1.0.0 install
+> cd platform && pnpm install
+
+Scope: all 10 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+Done in 4.4s using pnpm v10.26.1
+
+added 1 package, removed 9 packages, changed 8 packages, and audited 467 packages in 11s
+
+43 packages are looking for funding
+  run `npm fund` for details
+
+10 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+~/workspace$ EXPO_NO_DEVTOOLS=1 npx expo start --clear
+Starting project at /home/runner/workspace
+Starting Metro Bundler
+
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+ ERROR  An unknown error occurred while installing React Native DevTools. Details:
+
+/home/runner/workspace/node_modules/@react-native/debugger-shell/bin/react-native-devtools: error while loading shared libraries: libglib-2.0.so.0: cannot open shared object file: No such file or directory
+
+^C
+~/workspace$ npx expo start --tunnel --clear
+Starting project at /home/runner/workspace
+Starting Metro Bundler
+
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+ ERROR  An unknown error occurred while installing React Native DevTools. Details:
+
+/home/runner/workspace/node_modules/@react-native/debugger-shell/bin/react-native-devtools: error while loading shared libraries: libglib-2.0.so.0: cannot open shared object file: No such file or directory
+
+✔ The package @expo/ngrok@^4.1.0 is required to use tunnels, would you like to install it globally? … yes
+Installing @expo/ngrok@^4.1.0...
+> npm install --global @expo/ngrok@^4.1.0
+Installed @expo/ngrok@^4.1.0
+Tunnel connected.
+Tunnel ready.
+✔ It looks like you're trying to use TypeScript but don't have the required dependencies installed. Would
+you like to install typescript@~6.0.3, @types/react@~19.2.14? … yes
+
+› Installing 2 other packages using npm
+› Using ~6.0.3 instead of ~6.0.3 for typescript and ~19.2.14 instead of ~19.2.14 for @types/react because these versions was explicitly provided. Packages excluded from dependency validation should be listed in expo.install.exclude in package.json. Learn more: https://docs.expo.dev/more/expo-cli/#configuring-dependency-validation
+> npm install
+
+> asaancare@1.0.0 install
+> cd platform && pnpm install
+
+⠸ Installing typescript@~6.0.3, @types/react@~19.2.14Scope: all 10 workspace projects
+⠴ Installing typescript@~6.0.3, @types/react@~19.2.14Lockfile is up to date, resolution step is skipped
+⠧ Installing typescript@~6.0.3, @types/react@~19.2.14Already up to date
+⠋ Installing typescript@~6.0.3, @types/react@~19.2.14Done in 3.5s using pnpm v10.26.1
+
+added 3 packages, and audited 470 packages in 7s
+
+43 packages are looking for funding
+  run `npm fund` for details
+
+10 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+✔ Installed typescript@~6.0.3, @types/react@~19.2.14
+
+TypeScript: A tsconfig.json has been auto-generated
+
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ ▄▄▄▄▄ █ ██▀▀ ▄▄▄▀▀▀██ ▄▄▄▄▄ █
+█ █   █ █  ▀█ ▀ ▀▄▄▄█ █ █   █ █
+█ █▄▄▄█ █▀  █▄▄ ▄ ▄▄▀██ █▄▄▄█ █
+█▄▄▄▄▄▄▄█▄█ ▀▄█ ▀ ▀ ▀ █▄▄▄▄▄▄▄█
+█▄▄▀█ ▄▄▀██▄█▄▀█ ▀ ▄█▄▀▀▄▀ ▄  █
+█▀▀▄ ▀▀▄▄  ▄█▀█▄ ▄ ██ ▀ ▀▄█▄  █
+██ ▀█▄ ▄█▀█▀▄▀▄ ▀▀▄▄█▄█▀▀▀▄█▀▀█
+█▀█ █  ▄▄▄▄▀ ▄ ▄▄▄ ██▄█▀▀█▄▄▀ █
+█ █ ██ ▄▄▀  █▄ ▀ █ ▄██▄▀▀▀▄█▀ █
+███▄▄▄▀▄ ▀█▀█▀█▀   █▀▀▄ ▄█ ▄█ █
+█▄▄▄▄██▄█  ▀▄▀▄▄▀ ▄▄▀ ▄▄▄  █▄▀█
+█ ▄▄▄▄▄ █▀█  ▄ ▄   ▀  █▄█  ██▄█
+█ █   █ █▄ ▄█▄ ▀    ▄▄ ▄▄▄▄█▄▀█
+█ █▄▄▄█ █▀▄▀█▀█▀ █▀▄▄ ▄█▀███  █
+█▄▄▄▄▄▄▄█▄▄▄▄█▄▄██▄██▄█▄█▄██▄██
+
+› Scan the QR code above to open in Expo Go.
+› Metro: exp://il0dac4-anonymous-8081.exp.direct
+
+› Using Expo Go (Press s to switch to development build)
+› Press ? │ show all commands
+
+Logs for your project will appear below. Press Ctrl+C to exit.
+✖ Installing typescript@~6.0.3, @types/react@~19.2.14
+› Stopped server
+~/workspace$ rm -rf node_modules package-lock.json .expo .expo-shared
+npm cache clean --force
+npm warn using --force Recommended protections disabled.
+~/workspace$ npm install
+npm warn deprecated uuid@7.0.3: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+
+> asaancare@1.0.0 install
+> cd platform && pnpm install
+
+Scope: all 10 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+Done in 2.5s using pnpm v10.26.1
+
+added 465 packages, and audited 466 packages in 45s
+
+42 packages are looking for funding
+  run `npm fund` for details
+
+10 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+~/workspace$ npx expo install expo react react-native
+› Installing 3 SDK 56.0.0 compatible native modules using npm
+> npm install
+
+> asaancare@1.0.0 install
+> cd platform && pnpm install
+
+Scope: all 10 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+Done in 3.4s using pnpm v10.26.1
+
+added 1 package, and audited 467 packages in 5s
+
+43 packages are looking for funding
+  run `npm fund` for details
+
+10 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+› Running npx expo install under the updated expo version
+> expo install react react-native
+› Installing 2 SDK 56.0.0 compatible native modules using npm
+> npm install
+
+> asaancare@1.0.0 install
+> cd platform && pnpm install
+
+Scope: all 10 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+Done in 2.7s using pnpm v10.26.1
+
+up to date, audited 467 packages in 4s
+
+43 packages are looking for funding
+  run `npm fund` for details
+
+10 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+~/workspace$ npx expo start --clear --tunnel
+Starting project at /home/runner/workspace
+Starting Metro Bundler
+
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+ ERROR  An unknown error occurred while installing React Native DevTools. Details:
+
+/home/runner/workspace/node_modules/@react-native/debugger-shell/bin/react-native-devtools: error while loading shared libraries: libglib-2.0.so.0: cannot open shared object file: No such file or directory
+
+Tunnel connected.
+Tunnel ready.
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ ▄▄▄▄▄ █ ▄▄ █▄ ██ ██▀█ ▄▄▄▄▄ █
+█ █   █ ██▄█▀▀ ▀█  █▄▀█ █   █ █
+█ █▄▄▄█ █ ▀▀▄  ▄█▀█ █▀█ █▄▄▄█ █
+█▄▄▄▄▄▄▄█ ▀▄█▄█ █▄█ ▀ █▄▄▄▄▄▄▄█
+█▄  ▀▀▄▄█▄▄█▄ █▀▀ ▀ ▀   ▄▄█▀  █
+█ █ █ █▄█ ▄ ▀ ▄█▄ ▄▄▄▀▄▄▄ ▄█▄▄█
+█▄█ ▄▄▄▄    ██ ▄  █ ▀ ▄ ▀█ ▀  █
+█ █▄▄▄▄▄▀ ▀▄▄█▀█  ▄▄▄█▀█▄ ███▄█
+█▄ ▄ ▀▄▄▄▄ ▀▄ ▄█▀▄▀ ▀▀█  █ ▀ ▀█
+█▄▄  ▄ ▄ ▀▄▄▀ ▄ ▄▄▄▄   ▄▀▄▀█▀▄█
+█▄▄▄▄▄█▄▄ ▄ ██   ▀█ █ ▄▄▄ █▀█ █
+█ ▄▄▄▄▄ █▀▀ ▄█▀█▄▄▄ ▀ █▄█ ▀▄▀ █
+█ █   █ ██▄▄▄ ▄█▀▀▀▄   ▄   ██ █
+█ █▄▄▄█ █ █▄▀ ▄ ▄▀███▀ ▀█▄▀█▄▄█
+█▄▄▄▄▄▄▄█▄▄▄██▄▄▄▄███▄▄██▄███▄█
+
+› Scan the QR code above to open in Expo Go.
+› Metro: exp://ygtuhx0-anonymous-8081.exp.direct
+
+› Using Expo Go (Press s to switch to development build)
+› Press ? │ show all commands
+
+Logs for your project will appear below. Press Ctrl+C to exit.
+› Stopped server
+~/workspace$ npx expo start --tunnel
+Starting project at /home/runner/workspace
+Starting Metro Bundler
+
+ ERROR  An unknown error occurred while installing React Native DevTools. Details:
+
+/home/runner/workspace/node_modules/@react-native/debugger-shell/bin/react-native-devtools: error while loading shared libraries: libglib-2.0.so.0: cannot open shared object file: No such file or directory
+
+CommandError: failed to start tunnel
+
+remote gone away
+
+Check the Ngrok status page for outages: https://status.ngrok.com/
+~/workspace$ EXPO_NO_DEVTOOLS=1 npx expo start --clear --tunnel
+Starting project at /home/runner/workspace
+Starting Metro Bundler
+
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+ ERROR  An unknown error occurred while installing React Native DevTools. Details:
+
+/home/runner/workspace/node_modules/@react-native/debugger-shell/bin/react-native-devtools: error while loading shared libraries: libglib-2.0.so.0: cannot open shared object file: No such file or directory
+
+CommandError: failed to start tunnel
+
+remote gone away
+
+Check the Ngrok sta

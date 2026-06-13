@@ -1,0 +1,896 @@
+You are an expert fullstack developer. Migrate the entire AsaanCare 
+telemedicine backend from current setup to Supabase (database + auth) 
+and Appwrite (file storage). Do NOT change any frontend screens or 
+business logic. Only change the data layer and auth layer.
+
+=== CURRENT STACK ===
+- Backend: Express 5 + TypeScript
+- Database: Neon PostgreSQL + Drizzle ORM
+- Auth: Custom JWT
+- Storage: Local/none
+- Runtime: Replit
+
+=== TARGET STACK ===
+- Database: Supabase PostgreSQL (keep Drizzle ORM on top)
+- Auth: Supabase Auth (phone OTP + email)
+- Storage: Appwrite (documents, prescriptions, profile photos)
+- Backend: Express 5 stays same
+- Video: LiveKit Cloud (replace Agora)
+
+=== TASK 1: SUPABASE DATABASE SETUP ===
+
+Update database connection in /packages/api-server/src/db.ts:
+
+Use Drizzle ORM with Supabase PostgreSQL.
+Connection string from env: SUPABASE_DATABASE_URL
+Use direct connection (port 5432) for migrations.
+Use pooler connection (port 6543) for runtime queries.
+Add SSL: { rejectUnauthorized: false }
+
+New db.ts:
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from './schema';
+
+const connectionString = process.env.SUPABASE_DATABASE_URL!;
+
+// For migrations - direct connection
+export const migrationClient = postgres(connectionString, { 
+  ssl: 'require', 
+  max: 1 
+});
+
+// For queries - pooler connection  
+const queryClient = postgres(
+  process.env.SUPABASE_POOLER_URL!, 
+  { ssl: 'require' }
+);
+
+export const db = drizzle(queryClient, { schema });
+
+Run this SQL directly in Supabase SQL Editor to create all tables
+(do NOT use drizzle-kit push - use SQL editor instead):
+
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone VARCHAR(20) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE,
+  supabase_uid UUID UNIQUE,
+  role VARCHAR(20) DEFAULT 'patient' NOT NULL,
+  is_active BOOLEAN DEFAULT true NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS doctors (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  profile_photo TEXT,
+  gender VARCHAR(10),
+  city VARCHAR(100),
+  area VARCHAR(100),
+  phone VARCHAR(20),
+  email VARCHAR(255),
+  languages JSONB DEFAULT '[]',
+  specialty VARCHAR(255),
+  qualification VARCHAR(500),
+  experience_years INTEGER DEFAULT 0,
+  pmdc_number VARCHAR(50),
+  services JSONB DEFAULT '[]',
+  bio TEXT,
+  online_fee DECIMAL(10,2) DEFAULT 0,
+  clinic_fee DECIMAL(10,2) DEFAULT 0,
+  verification_status VARCHAR(20) DEFAULT 'pending',
+  is_online BOOLEAN DEFAULT false,
+  rating DECIMAL(3,2) DEFAULT 0,
+  total_reviews INTEGER DEFAULT 0,
+  total_earnings DECIMAL(12,2) DEFAULT 0,
+  available_balance DECIMAL(12,2) DEFAULT 0,
+  pending_balance DECIMAL(12,2) DEFAULT 0,
+  bank_name VARCHAR(100),
+  bank_account_number VARCHAR(50),
+  bank_account_title VARCHAR(255),
+  jazzcash_number VARCHAR(20),
+  easypaisa_number VARCHAR(20),
+  pmdc_cert_url TEXT,
+  cnic_front_url TEXT,
+  cnic_back_url TEXT,
+  degree_url TEXT,
+  clinic_proof_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS patients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  profile_photo TEXT,
+  gender VARCHAR(10),
+  date_of_birth DATE,
+  city VARCHAR(100),
+  blood_group VARCHAR(5),
+  allergies JSONB DEFAULT '[]',
+  chronic_diseases JSONB DEFAULT '[]',
+  current_medicines JSONB DEFAULT '[]',
+  emergency_contact VARCHAR(20),
+  subscription_plan VARCHAR(20) DEFAULT 'basic',
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS appointments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  doctor_id UUID REFERENCES doctors(id) NOT NULL,
+  patient_id UUID REFERENCES patients(id) NOT NULL,
+  consult_type VARCHAR(20) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending' NOT NULL,
+  scheduled_at TIMESTAMPTZ NOT NULL,
+  duration INTEGER DEFAULT 15,
+  reason_for_visit TEXT,
+  symptoms JSONB DEFAULT '[]',
+  patient_notes TEXT,
+  doctor_notes TEXT,
+  payment_status VARCHAR(20) DEFAULT 'pending',
+  payment_amount DECIMAL(10,2),
+  platform_fee DECIMAL(10,2),
+  doctor_earning DECIMAL(10,2),
+  family_member_name VARCHAR(255),
+  uploaded_reports JSONB DEFAULT '[]',
+  livekit_room_name VARCHAR(255),
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS consultation_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  appointment_id UUID REFERENCES appointments(id) NOT NULL,
+  doctor_id UUID REFERENCES doctors(id) NOT NULL,
+  patient_id UUID REFERENCES patients(id) NOT NULL,
+  consult_type VARCHAR(20) NOT NULL,
+  status VARCHAR(20) DEFAULT 'waiting' NOT NULL,
+  started_at TIMESTAMPTZ,
+  ended_at TIMESTAMPTZ,
+  timer_duration INTEGER DEFAULT 120,
+  livekit_room_name VARCHAR(255),
+  messages JSONB DEFAULT '[]',
+  recording_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS prescriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  appointment_id UUID REFERENCES appointments(id) NOT NULL,
+  doctor_id UUID REFERENCES doctors(id) NOT NULL,
+  patient_id UUID REFERENCES patients(id) NOT NULL,
+  diagnosis TEXT NOT NULL,
+  medicines JSONB DEFAULT '[]',
+  lab_tests JSONB DEFAULT '[]',
+  instructions TEXT,
+  follow_up_date DATE,
+  doctor_notes TEXT,
+  digital_signature TEXT,
+  pdf_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  doctor_id UUID REFERENCES doctors(id) ON DELETE CASCADE NOT NULL,
+  day_of_week INTEGER NOT NULL,
+  is_available BOOLEAN DEFAULT true,
+  clinic_start TIME, clinic_end TIME,
+  video_start TIME, video_end TIME,
+  audio_start TIME, audio_end TIME,
+  chat_start TIME, chat_end TIME,
+  slot_duration INTEGER DEFAULT 15,
+  max_bookings_per_day INTEGER DEFAULT 20,
+  break_start TIME, break_end TIME,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS earning_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  doctor_id UUID REFERENCES doctors(id) NOT NULL,
+  appointment_id UUID REFERENCES appointments(id),
+  amount DECIMAL(10,2) NOT NULL,
+  type VARCHAR(30) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS payout_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  doctor_id UUID REFERENCES doctors(id) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  method VARCHAR(20) NOT NULL,
+  account_detail VARCHAR(255) NOT NULL,
+  status VARCHAR(20) DEFAULT 'requested' NOT NULL,
+  admin_note TEXT,
+  requested_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  processed_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  body TEXT NOT NULL,
+  data JSONB DEFAULT '{}',
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  doctor_id UUID REFERENCES doctors(id) NOT NULL,
+  patient_id UUID REFERENCES patients(id) NOT NULL,
+  appointment_id UUID REFERENCES appointments(id) NOT NULL,
+  rating INTEGER NOT NULL,
+  punctuality_rating INTEGER,
+  quality_rating INTEGER,
+  feedback TEXT,
+  doctor_reply TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS clinics (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  doctor_id UUID REFERENCES doctors(id) ON DELETE CASCADE NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  address TEXT,
+  city VARCHAR(100),
+  area VARCHAR(100),
+  lat DECIMAL(10,8),
+  lng DECIMAL(11,8),
+  phone VARCHAR(20),
+  is_online_only BOOLEAN DEFAULT false,
+  images JSONB DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS doctor_leaves (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  doctor_id UUID REFERENCES doctors(id) ON DELETE CASCADE NOT NULL,
+  leave_date DATE NOT NULL,
+  reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+Then enable Row Level Security on ALL tables:
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE doctors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE patients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE consultation_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE prescriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE availability ENABLE ROW LEVEL SECURITY;
+ALTER TABLE earning_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payout_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clinics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE doctor_leaves ENABLE ROW LEVEL SECURITY;
+
+Then create RLS policies:
+
+-- Users: see only own record
+CREATE POLICY "users_own" ON users
+  FOR ALL USING (auth.uid()::text = supabase_uid::text);
+
+-- Doctors: public read for verified, write own only  
+CREATE POLICY "doctors_public_read" ON doctors
+  FOR SELECT USING (verification_status = 'approved');
+
+CREATE POLICY "doctors_own_write" ON doctors
+  FOR ALL USING (
+    user_id IN (
+      SELECT id FROM users WHERE supabase_uid = auth.uid()
+    )
+  );
+
+-- Patients: own record only
+CREATE POLICY "patients_own" ON patients
+  FOR ALL USING (
+    user_id IN (
+      SELECT id FROM users WHERE supabase_uid = auth.uid()
+    )
+  );
+
+-- Appointments: doctor or patient of that appointment
+CREATE POLICY "appointments_participant" ON appointments
+  FOR ALL USING (
+    doctor_id IN (
+      SELECT d.id FROM doctors d 
+      JOIN users u ON d.user_id = u.id 
+      WHERE u.supabase_uid = auth.uid()
+    )
+    OR
+    patient_id IN (
+      SELECT p.id FROM patients p 
+      JOIN users u ON p.user_id = u.id 
+      WHERE u.supabase_uid = auth.uid()
+    )
+  );
+
+-- Prescriptions: doctor who wrote or patient it belongs to
+CREATE POLICY "prescriptions_participant" ON prescriptions
+  FOR ALL USING (
+    doctor_id IN (
+      SELECT d.id FROM doctors d 
+      JOIN users u ON d.user_id = u.id 
+      WHERE u.supabase_uid = auth.uid()
+    )
+    OR
+    patient_id IN (
+      SELECT p.id FROM patients p 
+      JOIN users u ON p.user_id = u.id 
+      WHERE u.supabase_uid = auth.uid()
+    )
+  );
+
+-- Notifications: own only
+CREATE POLICY "notifications_own" ON notifications
+  FOR ALL USING (
+    user_id IN (
+      SELECT id FROM users WHERE supabase_uid = auth.uid()
+    )
+  );
+
+-- Earnings: own doctor only
+CREATE POLICY "earnings_own" ON earning_transactions
+  FOR ALL USING (
+    doctor_id IN (
+      SELECT d.id FROM doctors d 
+      JOIN users u ON d.user_id = u.id 
+      WHERE u.supabase_uid = auth.uid()
+    )
+  );
+
+=== TASK 2: SUPABASE AUTH - REPLACE CUSTOM JWT ===
+
+Install: npm install @supabase/supabase-js
+
+Create /packages/api-server/src/lib/supabase.ts:
+
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Verify token from mobile app
+export async function verifySupabaseToken(token: string) {
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) throw new Error('Invalid token');
+  return user;
+}
+
+Create /packages/api-server/src/middleware/auth.ts:
+
+import { Request, Response, NextFunction } from 'express';
+import { verifySupabaseToken } from '../lib/supabase';
+import { db } from '../db';
+import { users, doctors, patients } from '../schema';
+import { eq } from 'drizzle-orm';
+
+export async function requireAuth(
+  req: Request, res: Response, next: NextFunction
+) {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: 'No token' });
+
+    const supabaseUser = await verifySupabaseToken(token);
+    
+    // Get our internal user record
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.supabaseUid, supabaseUser.id));
+
+    if (!user) return res.status(401).json({ error: 'User not found' });
+
+    (req as any).userId = user.id;
+    (req as any).userRole = user.role;
+    (req as any).supabaseUid = supabaseUser.id;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+}
+
+export async function requireDoctorAuth(
+  req: Request, res: Response, next: NextFunction
+) {
+  await requireAuth(req, res, async () => {
+    const userId = (req as any).userId;
+    const [doctor] = await db
+      .select()
+      .from(doctors)
+      .where(eq(doctors.userId, userId));
+    
+    if (!doctor) return res.status(403).json({ error: 'Doctor not found' });
+    (req as any).doctorId = doctor.id;
+    next();
+  });
+}
+
+Create /packages/api-server/src/routes/auth.ts:
+
+import { Router } from 'express';
+import { supabase } from '../lib/supabase';
+import { db } from '../db';
+import { users, doctors, patients } from '../schema';
+import { eq } from 'drizzle-orm';
+
+const router = Router();
+
+// POST /api/auth/send-otp
+// Body: { phone: '+923001234567' }
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ error: 'Phone required' });
+
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    if (error) return res.status(400).json({ error: error.message });
+
+    return res.json({ success: true, message: 'OTP sent' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/verify-otp
+// Body: { phone, token, role: 'patient'|'doctor' }
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { phone, token, role = 'patient' } = req.body;
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms'
+    });
+
+    if (error || !data.user) {
+      return res.status(400).json({ error: error?.message ?? 'Invalid OTP' });
+    }
+
+    // Check if user exists in our DB
+    let [existingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.supabaseUid, data.user.id));
+
+    if (!existingUser) {
+      // Create new user in our DB
+      const [newUser] = await db.insert(users).values({
+        phone,
+        supabaseUid: data.user.id,
+        role,
+      }).returning();
+      existingUser = newUser;
+
+      // Create role-specific record
+      if (role === 'doctor') {
+        await db.insert(doctors).values({
+          userId: newUser.id,
+          fullName: '',
+          phone,
+        });
+      } else {
+        await db.insert(patients).values({
+          userId: newUser.id,
+          fullName: '',
+        });
+      }
+    }
+
+    return res.json({
+      success: true,
+      accessToken: data.session?.access_token,
+      refreshToken: data.session?.refresh_token,
+      user: {
+        id: existingUser.id,
+        phone: existingUser.phone,
+        role: existingUser.role,
+      }
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/refresh
+// Body: { refreshToken }
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    const { data, error } = await supabase.auth.refreshSession({ 
+      refresh_token: refreshToken 
+    });
+    
+    if (error) return res.status(401).json({ error: error.message });
+
+    return res.json({
+      accessToken: data.session?.access_token,
+      refreshToken: data.session?.refresh_token,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/logout
+router.post('/logout', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (token) await supabase.auth.admin.signOut(token);
+    return res.json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+export default router;
+
+=== TASK 3: LIVEKIT - REPLACE AGORA ===
+
+Install in api-server: npm install livekit-server-sdk
+Install in doctor-app: npx expo install @livekit/react-native
+Install in patient-app: npx expo install @livekit/react-native
+
+Create /packages/api-server/src/routes/livekit.ts:
+
+import { Router } from 'express';
+import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+
+const router = Router();
+
+const livekitHost = process.env.LIVEKIT_URL!;
+const apiKey = process.env.LIVEKIT_API_KEY!;
+const apiSecret = process.env.LIVEKIT_API_SECRET!;
+
+// POST /api/livekit/token
+// Body: { roomName, participantName, role: 'doctor'|'patient' }
+router.post('/token', async (req, res) => {
+  try {
+    const { roomName, participantName, role } = req.body;
+
+    const at = new AccessToken(apiKey, apiSecret, {
+      identity: participantName,
+      ttl: '2h',
+    });
+
+    at.addGrant({
+      roomJoin: true,
+      room: roomName,
+      canPublish: true,      // both can publish
+      canSubscribe: true,    // both can subscribe
+      canPublishData: true,  // for chat messages
+    });
+
+    const token = await at.toJwt();
+
+    return res.json({ 
+      token, 
+      url: livekitHost,
+      roomName 
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/livekit/start-recording
+// Body: { roomName, appointmentId }
+router.post('/start-recording', async (req, res) => {
+  try {
+    const { roomName } = req.body;
+    // LiveKit Cloud handles recording via Egress
+    // Configure in LiveKit Cloud dashboard → Egress → S3/storage
+    return res.json({ 
+      success: true, 
+      message: 'Recording starts automatically via LiveKit Egress' 
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+export default router;
+
+=== TASK 4: APPWRITE FILE STORAGE ===
+
+Install in api-server: npm install node-appwrite
+Install in doctor-app: npx expo install react-native-appwrite
+Install in patient-app: npx expo install react-native-appwrite
+
+Create /packages/api-server/src/lib/appwrite.ts:
+
+import { Client, Storage, ID, Permission, Role } from 'node-appwrite';
+
+const client = new Client()
+  .setEndpoint(process.env.APPWRITE_ENDPOINT!)
+  .setProject(process.env.APPWRITE_PROJECT_ID!)
+  .setKey(process.env.APPWRITE_API_KEY!);
+
+export const storage = new Storage(client);
+
+// Bucket IDs - create these in Appwrite dashboard first
+export const BUCKETS = {
+  DOCTOR_DOCUMENTS: process.env.APPWRITE_BUCKET_DOCTOR_DOCS!,
+  PROFILE_PHOTOS:   process.env.APPWRITE_BUCKET_PHOTOS!,
+  PRESCRIPTIONS:    process.env.APPWRITE_BUCKET_PRESCRIPTIONS!,
+  PATIENT_REPORTS:  process.env.APPWRITE_BUCKET_REPORTS!,
+};
+
+export async function uploadFile(
+  bucketId: string,
+  file: Buffer,
+  fileName: string,
+  mimeType: string,
+  userId: string
+) {
+  const result = await storage.createFile(
+    bucketId,
+    ID.unique(),
+    new File([file], fileName, { type: mimeType }),
+    [
+      Permission.read(Role.user(userId)),
+      Permission.delete(Role.user(userId)),
+    ]
+  );
+  return result;
+}
+
+export async function getFileUrl(bucketId: string, fileId: string) {
+  return storage.getFileView(bucketId, fileId);
+}
+
+export async function deleteFile(bucketId: string, fileId: string) {
+  return storage.deleteFile(bucketId, fileId);
+}
+
+Create /packages/api-server/src/routes/upload.ts:
+
+import { Router } from 'express';
+import multer from 'multer';
+import { uploadFile, BUCKETS } from '../lib/appwrite';
+import { requireAuth } from '../middleware/auth';
+
+const router = Router();
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
+});
+
+// POST /api/upload/doctor-document
+router.post('/doctor-document', requireAuth, upload.single('file'), 
+  async (req: any, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'No file' });
+      
+      const result = await uploadFile(
+        BUCKETS.DOCTOR_DOCUMENTS,
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        req.supabaseUid
+      );
+
+      return res.json({ 
+        fileId: result.$id, 
+        fileName: result.name,
+        bucketId: BUCKETS.DOCTOR_DOCUMENTS
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// POST /api/upload/profile-photo
+router.post('/profile-photo', requireAuth, upload.single('photo'), 
+  async (req: any, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'No file' });
+      
+      const result = await uploadFile(
+        BUCKETS.PROFILE_PHOTOS,
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        req.supabaseUid
+      );
+
+      return res.json({ fileId: result.$id });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// POST /api/upload/prescription-pdf
+router.post('/prescription-pdf', requireAuth, upload.single('pdf'), 
+  async (req: any, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'No file' });
+
+      const result = await uploadFile(
+        BUCKETS.PRESCRIPTIONS,
+        req.file.buffer,
+        req.file.originalname,
+        'application/pdf',
+        req.supabaseUid
+      );
+
+      return res.json({ fileId: result.$id });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// POST /api/upload/patient-report
+router.post('/patient-report', requireAuth, upload.single('report'), 
+  async (req: any, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'No file' });
+
+      const result = await uploadFile(
+        BUCKETS.PATIENT_REPORTS,
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        req.supabaseUid
+      );
+
+      return res.json({ fileId: result.$id });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+export default router;
+
+=== TASK 5: UPDATE ENVIRONMENT VARIABLES ===
+
+Update .env file in api-server:
+
+# Supabase
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_DATABASE_URL=postgresql://postgres:[password]@db.xxxx.supabase.co:5432/postgres?sslmode=require
+SUPABASE_POOLER_URL=postgresql://postgres.[ref]:[password]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+
+# LiveKit (replace Agora)
+LIVEKIT_URL=wss://your-project.livekit.cloud
+LIVEKIT_API_KEY=your_livekit_api_key
+LIVEKIT_API_SECRET=your_livekit_api_secret
+
+# Appwrite
+APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=your_project_id
+APPWRITE_API_KEY=your_api_key
+APPWRITE_BUCKET_DOCTOR_DOCS=doctor_documents
+APPWRITE_BUCKET_PHOTOS=profile_photos
+APPWRITE_BUCKET_PRESCRIPTIONS=prescriptions
+APPWRITE_BUCKET_REPORTS=patient_reports
+
+# Remove these old ones:
+# DATABASE_URL (Neon)
+# JWT_SECRET (custom auth)
+# AGORA_APP_ID
+# AGORA_APP_CERTIFICATE
+
+=== TASK 6: UPDATE MAIN INDEX.TS ROUTES ===
+
+In /packages/api-server/src/index.ts, replace old routes and add:
+
+import authRoutes     from './routes/auth';
+import livekitRoutes  from './routes/livekit';
+import uploadRoutes   from './routes/upload';
+
+// Remove old agora route
+// Remove old custom auth route
+
+app.use('/api/auth',    authRoutes);
+app.use('/api/livekit', livekitRoutes);
+app.use('/api/upload',  uploadRoutes);
+
+// Add security middleware at top:
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
+app.use(helmet());
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Too many requests'
+}));
+
+// Auth routes stricter limit:
+app.use('/api/auth', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10
+}));
+
+=== TASK 7: MOBILE APPS - AUTH UPDATE ===
+
+In both doctor-app and patient-app, 
+create /lib/supabase.ts:
+
+import { createClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export const supabase = createClient(
+  process.env.EXPO_PUBLIC_SUPABASE_URL!,
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+  }
+);
+
+Update login screen in both apps to use:
+1. Call POST /api/auth/send-otp with phone number
+2. User enters OTP
+3. Call POST /api/auth/verify-otp with phone + otp + role
+4. Save returned accessToken to AsyncStorage as 'auth_token'
+5. Save refreshToken as 'refresh_token'
+6. All subsequent API calls use Authorization: Bearer {accessToken}
+
+=== TASK 8: APPWRITE SETUP INSTRUCTIONS ===
+
+Tell developer to do this manually in Appwrite dashboard:
+1. Create project named 'AsaanCare'
+2. Create 4 storage buckets:
+   - doctor_documents (max 10MB, allowed: pdf, jpg, png)
+   - profile_photos (max 5MB, allowed: jpg, png, webp)
+   - prescriptions (max 10MB, allowed: pdf)
+   - patient_reports (max 20MB, allowed: pdf, jpg, png, dicom)
+3. Set all buckets to PRIVATE (no public access)
+4. Get API key with storage read+write permissions
+5. Add all env vars to .env
+
+=== TASK 9: INSTALL ALL PACKAGES ===
+
+Run in api-server:
+npm install @supabase/supabase-js livekit-server-sdk node-appwrite multer helmet express-rate-limit
+npm install @types/multer --save-dev
+
+Run in doctor-app:
+npx expo install @livekit/react-native @supabase/supabase-js @react-native-async-storage/async-storage
+
+Run in patient-app:
+npx expo install @livekit/react-native @supabase/supabase-js @react-native-async-storage/async-storage
+
+=== DO NOT CHANGE ===
+- Any UI screens or components
+- Business logic (appointments, prescriptions, earnings)
+- Socket.io chat system
+- Schedule/availability logic
+- Drizzle schema structure
+- Monorepo structure
+- Any existing working features
+
+=== VERIFY AFTER MIGRATION ===
+Test these endpoints work:
+POST /api/auth/send-otp → returns success
+POST /api/auth/verify-otp → returns token
+GET /api/doctor/dashboard → works with Bearer token
+POST /api/livekit/token → returns LiveKit JWT
+POST /api/upload/profile-photo → returns fileId

@@ -1,0 +1,29 @@
+{
+  "name": "asaancare",
+  "version": "1.0.0",
+  "description": "AsaanCare — Telemedicine platform for Pakistan. Admin, API, Doctor App, Patient App.",
+  "private": true,
+  "scripts": {
+    "dev": "cd platform && PORT=3000 pnpm --filter @asaancare/api-server run dev & PORT=5000 BASE_PATH=/ pnpm --filter @asaancare/admin-dashboard run dev",
+    "dev:api": "cd platform && PORT=3000 pnpm --filter @asaancare/api-server run dev",
+    "dev:admin": "cd platform && PORT=5000 BASE_PATH=/ pnpm --filter @asaancare/admin-dashboard run dev",
+    "dev:doctor": "cd platform && pnpm --filter @asaancare/doctor-app run dev",
+    "dev:patient": "cd platform && pnpm --filter @asaancare/patient-app run dev",
+    "install": "cd platform && pnpm install",
+    "build": "cd platform && pnpm --filter @asaancare/api-server run build && pnpm --filter @asaancare/admin-dashboard run build",
+    "build:api": "cd platform && pnpm --filter @asaancare/api-server run build",
+    "build:admin": "cd platform && pnpm --filter @asaancare/admin-dashboard run build",
+    "seed": "cd platform && pnpm --filter @asaancare/api-server run seed",
+    "db:push": "cd platform && pnpm --filter @asaancare/db run push",
+    "typecheck": "cd platform && pnpm --filter @asaancare/api-server run typecheck && pnpm --filter @asaancare/admin-dashboard run typecheck"
+  },
+  "dependencies": {
+    "expo": "54",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
+  }
+}
