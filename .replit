@@ -1,0 +1,116 @@
+modules = ["nodejs-20", "web", "bash", "postgresql-16"]
+[agent]
+expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "API Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "patient-app"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd platform && PORT=5000 BASE_PATH=/ pnpm --filter @asaancare/admin-dashboard run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "API Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd platform && PORT=3000 pnpm --filter @asaancare/api-server run dev"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "patient-app"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd platform && PORT=8082 pnpm --filter @asaancare/patient-app run dev"
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
+localPort = 8082
+externalPort = 4200
+
+[[ports]]
+localPort = 8083
+externalPort = 5173
+
+[[ports]]
+localPort = 8084
+externalPort = 3003
+
+[[ports]]
+localPort = 20229
+externalPort = 3002
+
+[[ports]]
+localPort = 20913
+externalPort = 3001
+
+[[ports]]
+localPort = 20914
+externalPort = 5000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "-c", "cd platform && PORT=3000 pnpm --filter @asaancare/api-server run start & PORT=5000 BASE_PATH=/ pnpm --filter @asaancare/admin-dashboard run serve"]
+build = ["bash", "-c", "cd platform && pnpm install --frozen-lockfile && PORT=5000 BASE_PATH=/ pnpm --filter @asaancare/admin-dashboard run build && PORT=3000 pnpm --filter @asaancare/api-server run build"]
+
+[userenv]
+
+[userenv.shared]
+AGORA_APP_ID = "1693872f35b14b928ae900e7356c2618"
+AGORA_PRIMARY_CERTIFICATE = "72c80d257b3b4456b125d81a0d13356f"
+EXPO_PUBLIC_AGORA_APP_ID = "1693872f35b14b928ae900e7356c2618"
+SUPABASE_URL = "https://elvllbybvmyjmvytfdlu.supabase.co"
+EXPO_PUBLIC_SUPABASE_ANON_KEY = "SUPABASE_ANON_KEY_value_here"

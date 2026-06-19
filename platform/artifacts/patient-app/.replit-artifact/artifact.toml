@@ -1,0 +1,28 @@
+kind = "mobile"
+  previewPath = "/patient/"
+  title = "AsaanCare Patient App"
+  version = "1.0.0"
+  id = "artifacts/patient-app"
+  router = "expo-domain"
+
+  [[integratedSkills]]
+  name = "expo"
+  version = "1.0.0"
+
+  [[services]]
+  ensurePreviewReachable = "/status"
+  name = "expo"
+  paths = [ "/patient/" ]
+  localPort = 20914
+
+  [services.development]
+  run = "pnpm --filter @asaancare/patient-app run dev"
+
+  [services.production]
+  build = [ "pnpm", "--filter", "@asaancare/patient-app", "run", "build" ]
+  run = [ "pnpm", "--filter", "@asaancare/patient-app", "run", "serve" ]
+
+  [services.env]
+  PORT = "20914"
+  BASE_PATH = "/patient/"
+  

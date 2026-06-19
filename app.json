@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "9045349b-5b63-4e1b-ad22-d9fe210b2a77"
+      }
+    },
+    "owner": "asaancare",
+    "android": {
+      "package": "com.asaancare.asaancare"
+    }
+  }
+}
